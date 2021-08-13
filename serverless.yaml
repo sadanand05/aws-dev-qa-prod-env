@@ -1,4 +1,4 @@
-service: ftacel-fire
+service: test-ftacel-fire
 
 provider:
   name: aws
@@ -6,7 +6,7 @@ provider:
   runtime: nodejs12.x
   endpointType: REGIONAL
   stage: ${opt:stage, 'dev'}
-  stack: test-ftacel-fire
+  
   logRetentionInDays: 60
   deploymentBucket:
     name: ${env:deploymentBucket}
