@@ -18,7 +18,7 @@ phases:
       - echo 'Updating web config'
       - |
         aws cloudformation --region ap-southeast-2 describe-stacks \
-          --stack-name ftacel-fire-dev \
+          --stack-name ftacel-fire-test \
           --query "Stacks[0].Outputs[?OutputKey=='SiteConfigTemplate'].OutputValue" \
           --output text > web/config/site_config.json
       - echo 'Inserting admin user into DynamoDB'
