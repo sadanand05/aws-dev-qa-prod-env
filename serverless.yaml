@@ -1949,19 +1949,19 @@ resources:
     CloudFrontDistribution:
       Description: Direct link to the CloudFront distribution serving FIRE
       Export:
-        Name: '${self:provider.stage}-ftacel-fire-cloudfront-link'
+        Name: '${self:provider.stage}-test-ftacel-fire-cloudfront-link'
       Value: !Join [ '', [ 'https://console.aws.amazon.com/cloudfront/home?region=${self:provider.region}#distribution-settings:', !Ref CloudFrontDistribution ]]
 
     WebsiteURL:
       Description: Link to access the FIRE website
       Export:
-        Name: '${self:provider.stage}-ftacel-fire-website-link'
+        Name: '${self:provider.stage}-test-ftacel-fire-website-link'
       Value: !Join ['', ['https://', !GetAtt CloudFrontDistribution.DomainName ]]
 
     SiteConfigTemplate:
       Description: Template data for web/content/site_config.json
       Export:
-        Name: '${self:provider.stage}-ftacel-fire-siteconfig-template'
+        Name: '${self:provider.stage}-test-ftacel-fire-siteconfig-template'
       Value:
         Fn::Join:
         - ''
