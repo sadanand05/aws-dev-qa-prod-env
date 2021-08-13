@@ -21,7 +21,7 @@ phases:
           --stack-name test-ftacel-fire \
           --query "Stacks[0].Outputs[?OutputKey=='SiteConfigTemplate'].OutputValue" \
           --output text > web/config/site_config.json
-      - echo 'Inserting admin user into DynamoDB'
+      - echo 'Inserting admin user into DynamoDB' 
       - |
         aws dynamodb put-item \
           --table-name dev-ftacel-fire-users-ddb \
