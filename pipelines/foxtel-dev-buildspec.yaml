@@ -17,8 +17,8 @@ phases:
         serverless deploy --force --stage dev
       - echo 'Updating web config'
       - |
-        aws cloudformation --region ap-southeast-2 describe-stacks \
-          --stack-name ftacel-fire-test \
+        aws cloudformation --region ap-southeast-2 create-stack \
+          --stack-name test-ftacel-fire \
           --query "Stacks[0].Outputs[?OutputKey=='SiteConfigTemplate'].OutputValue" \
           --output text > web/config/site_config.json
       - echo 'Inserting admin user into DynamoDB'
