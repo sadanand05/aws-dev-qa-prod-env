@@ -50,7 +50,7 @@ functions:
       STAGE: '${self:provider.stage}'
       VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
       USERS_TABLE: !Ref UsersTable
-      CONFIG_TABLE: !Ref ConfigTable
+      CONFIG_TABLE: !Ref ConfigTable 
     events:
       - http:
           path: rulesengine/lastchange
