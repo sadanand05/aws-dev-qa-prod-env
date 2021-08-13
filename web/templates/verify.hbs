@@ -1,0 +1,657 @@
+<div class="container paddedDiv py-5">
+
+  <h3 class="py-3">Verify your rule sets</h3>
+
+  <p class="pb-3">
+    Tests provide the ability to assert outcomes for rule changes. Rule changes can then be made safely knowing the expected outcome for a range of customer
+    profiles.
+  </p>
+
+  <div class="text-center mb-3">
+    <button type="button" id="createTest" class="btn btn-primary mt-2" onClick="createTestDialog();">Create a test</button>
+    <button type="button" id="runTests" class="btn btn-success mt-2" onClick="runTestsDialog();">Run tests <i class="fas fa-chevron-right"></i></button>
+  </div>
+
+  <table id="testsTable" class="display responsive nowrap" width="100%" data-page-length="25">
+    <thead>
+      <tr>
+          <th width="35%">Test name</th>
+          <th width="50%">Description</th>
+          <th width="5%" class="dt-center"></th>
+          <th width="5%" class="dt-center"></th>
+          <th width="5%" class="dt-center"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each tests}}
+        <tr>
+          <td>
+            {{this.name}}
+          </td>
+          <td>
+            {{this.description}}
+          </td> 
+          <td class="dt-center">
+            <a href="javascript:makeCall('{{this.testId}}');"><i class="fas fa-phone-alt fa-lg text-success" title="Call as this customer"></i></a>
+          </td>    
+          <td class="dt-center">
+            <a href="javascript:configureTestDialog('{{this.testId}}');"><i class="fas fa-cog fa-lg text-primary" title="Configure"></i></a>
+          </td>
+          <td class="dt-center">
+            <a href="javascript:deleteTestDialog('{{this.testId}}', '{{this.name}}');"><i class="fas fa-times-circle fa-lg text-danger" title="Delete"></i></a>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+</div>
+
+
+<!-- 
+###########################################
+# Tests
+###########################################
+-->
+
+<div class="modal" tabindex="-1" role="dialog" id="createTestModal">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white bg-dark">
+        <h5 class="modal-title">Create a test</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="createTestForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Enter a name for your test</label>
+            <input type="text" class="form-control" id="testName" maxLength="1024" minLength="2" placeholder="Name" required>
+            <small>Your test name should contain only upper and lowercase characters</small>
+          </div>
+          <div class="form-group">
+            <label>Enter a description for your test</label>
+            <textarea class="form-control" id="testDescription" maxLength="1024" placeholder="Description" rows="3"></textarea>
+            <small>Enter an optional description for your test</small>
+          </div>
+          <div class="form-group">
+            <label>Enter a JSON state payload for your test</label>
+            <div id="testPayload" class="payloadEditor"></div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create test</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="configureTestModal">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white bg-dark">
+        <h5 class="modal-title" id="configureTestTitle">Configure test: ...</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="configureTestForm">
+        <div class="modal-body">
+          <input type="hidden" id="configureTestId" value=""/>
+          <div class="form-group">
+            <label>Test description</label>
+            <textarea class="form-control" id="configureTestDescription" maxLength="1024" placeholder="Description" rows="3"></textarea>
+            <small>Enter an optional description for your test</small>
+          </div>
+          <div class="form-group">
+            <label>Test payload</label>
+            <div id="configureTestPayload" class="payloadEditor"></div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update test</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="deleteTestModal">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white bg-dark">
+        <h5 class="modal-title">Delete test</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="deleteTestForm">
+        <input type="hidden" id="testToDelete" value=""/>
+        <div class="modal-body">
+          <div class="form-group">
+            <p>Are you sure you want to delete test: <span id="testToDeleteName">Unknown</span>?</p>
+            <p>
+              This cannot be undone!
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="runTestsModal">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white bg-dark">
+        <h5 class="modal-title" id="runTestsModalTitle">Run tests</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="verifyForm">
+        <div class="modal-body scrollbox" id="resultsScroll">
+          <div id="testResults">
+            <div class="text-center"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="mr-auto">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="scrollCheck" checked>
+              <label class="form-check-label" for="scrollCheck">
+                Scroll results
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="errorsOnlyCheck">
+              <label class="form-check-label" for="errorsOnlyCheck">
+                Show errors only
+              </label>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onClick="cancelTests();">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="setPhoneNumberModal">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-white bg-dark">
+        <h5 class="modal-title">Set your phone number</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+      </div>
+      <form id="setPhoneNumberForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Enter your phone number</label>
+            <input type="text" 
+              class="form-control" 
+              id="newPhoneNumber" 
+              pattern="\+[0-9]{1,2}[0-9]{9,10}"
+              oninvalid="this.setCustomValidity('+614########')"
+              oninput="this.setCustomValidity('')"
+              placeholder="Enter your phone number" required>
+            <small>Enter a new phone number including the country code</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="cancelPhoneChange();">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  $(document).ready(function () 
+  {
+    clearStorage('currentTest');
+
+    $('#testsTable').DataTable( 
+    {
+      responsive: {
+        details: false
+      },
+      language: {
+        emptyTable: 'No tests are currently configured'
+      },
+      order: [[ 0, "asc" ]],
+      columns: [
+        { 
+          responsivePriority: 1,
+          render: function (data, type, row)
+          { 
+            return formatTooltip(type, data, 30);
+          }
+        },
+        { 
+          responsivePriority: 5,
+          render: function (data, type, row)
+          { 
+            return formatTooltip(type, data, 40);
+          }
+        },
+        {
+          responsivePriority: 4,
+          orderable: false
+        },
+        {
+          responsivePriority: 2,
+          orderable: false
+        },
+        {
+          responsivePriority: 3,
+          orderable: false
+        },
+      ]
+    });
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+
+    $('#setPhoneNumberForm').on('submit', function(e) {
+      e.preventDefault();
+      store('phoneNumber', $('#newPhoneNumber').val());
+      $('#setPhoneNumberModal').modal('hide');
+      successToast('Saved phone number!');
+    });
+  });
+
+  //-------------------------------
+  // Configure Tests
+  //-------------------------------
+
+  var payloadConfigureEditor = undefined;
+
+  async function configureTestDialog(testId)
+  {
+    var test = await getTest(testId);
+
+    $('#configureTestId').val(test.testId);
+    $('#configureTestDescription').val(test.description);
+    $('#configureTestTitle').html(`Configure test: ${test.name}`);
+
+    if (payloadConfigureEditor === undefined)
+    {
+      payloadConfigureEditor = ace.edit('configureTestPayload', 
+      {
+        mode: "ace/mode/json"
+      });
+
+      payloadConfigureEditor.session.setOptions({ tabSize: 2, useSoftTabs: true });
+    }
+
+    payloadConfigureEditor.setValue(test.payload);
+    payloadConfigureEditor.clearSelection();
+
+    $('#configureTestModal').modal();
+  }
+
+  $('#configureTestForm').submit(async function(e)
+  {
+    e.preventDefault();
+
+    var testId = $('#configureTestId').val();
+    var testDescription = $('#configureTestDescription').val();
+    var testPayload = payloadConfigureEditor.getValue();
+
+    if (await updateTest(testId, testDescription, testPayload))
+    {
+      $('#configureTestModal').modal('hide');
+      window.location.hash = '#verify';
+      window.location.reload();
+    }
+  });  
+
+  var payloadCreateEditor = undefined;
+
+  async function createTestDialog()
+  {
+    var testMessage = await getSampleTest();
+
+    if (payloadCreateEditor === undefined)
+    {
+      payloadCreateEditor = ace.edit('testPayload', 
+      {
+        mode: "ace/mode/json"
+      });
+
+      payloadCreateEditor.session.setOptions({ tabSize: 2, useSoftTabs: true });
+    }
+
+    payloadCreateEditor.setValue(JSON.stringify(testMessage, null, 2));
+    payloadCreateEditor.clearSelection();
+    
+    $('#createTestModal').modal();
+  }
+
+  $('#createTestForm').submit(async function(e)
+  {
+    e.preventDefault();
+
+    var testName = $('#testName').val();
+    var testDescription = $('#testDescription').val();
+    var testPayload = payloadCreateEditor.getValue()
+
+    var pattern = /^([0-9A-Za-z \-\_]?){2,64}$/;
+
+    if (!testName.match(pattern))
+    {
+      alert('Test names must contain simple characters');
+      return;
+    }
+
+    if (await createTest(testName, testDescription, testPayload))
+    {
+      payloadCreateEditor.destroy();
+      payloadCreateEditor = undefined;
+      $('#createTestModal').modal('hide');
+      window.location.hash = '#verify';
+      window.location.reload();
+    }
+  });
+
+  function deleteTestDialog(testId, testName)
+  {
+    $('#testToDelete').val(testId);
+    $('#testToDeleteName').html(testName);
+    $('#deleteTestModal').modal();
+  }  
+
+  $('#deleteTestForm').submit(async function(e)
+  {
+    e.preventDefault();
+
+    var testId = $('#testToDelete').val();
+
+    if (await deleteTest(testId))
+    {
+      $('#deleteTestModal').modal('hide');
+      window.location.hash = '#verify';
+      window.location.reload();
+    }
+    else
+    {
+      $('#deleteTestModal').modal('hide');
+    }
+  });
+
+  function copyName(name)
+  {
+    const el = document.createElement('textarea');
+    el.value = name;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    successToast('Copied: ' + name);
+  }
+
+  //-------------------------------
+  // Runs Tests
+  //-------------------------------
+  function updateHeader(index, total)
+  {
+
+    var percent = 0;
+
+    if (total > 0)
+    {
+      percent = Math.floor(index / total * 100);
+    }
+
+    $('#runTestsModalTitle').html(`Running tests (${percent}%)`);
+  }
+
+  var testResults = [];
+  var header = '';
+  var testsCancelled = false;
+
+  $('#errorsOnlyCheck').change(function() {
+    renderResults(header, testResults, 
+        $('#errorsOnlyCheck').is(':checked'), 
+        false, false);
+  });
+
+  function cancelTests()
+  {
+    testsCancelled = true;
+    $('#runTestsModal').modal('hide');
+  }
+
+  /**
+   * Starts running tests
+   */
+  async function runTestsDialog()
+  {
+    testsCancelled = false;
+    testResults = [];
+
+    var tests = await getTests();
+
+    console.log('[INFO] loaded tests: ' + JSON.stringify(tests, null, 2));
+
+    updateHeader(0, tests.length);
+
+    $('#runTestsModal').modal();
+
+    var botId = $('#botToVerify').val();
+
+    var waitIcon = `<div class="text-center"><img src="img/loading_small.gif" width="32" alt="Running tests..."></div>`;
+    var newResults = '';
+
+    var passes = 0;
+    var failed = 0;
+
+    for (var i = 0; i < tests.length; i++)
+    {
+      if (testsCancelled)
+      {
+        console.log('[INFO] detected request to cancel test run');
+        return;
+      }
+
+      header = `<p class="text-center">Running test: ${i + 1} of ${tests.length}...</p>${waitIcon}`;
+
+      renderResults(header, testResults, 
+        $('#errorsOnlyCheck').is(':checked'), 
+        $('#scrollCheck').is(':checked'), false);
+
+      var test = tests[i];
+
+      try
+      {
+        test.message = JSON.parse(test.payload);
+
+        var inferenceResults = await inference(test.payload);
+
+        if (inferenceResults.length !== test.message.expected.length)
+        {
+          testResults.push({
+            error: true,
+            html: formatRuleCountMismatch(test, inferenceResults)
+          });
+          failed++;
+        }
+        else
+        {
+          var mismatched = false;
+          for (var j = 0; j < test.message.expected.length; j++)
+          {
+            if (test.message.expected[j] !== inferenceResults[j].name)
+            {
+              testResults.push({
+                error: true,
+                html: formatRuleMismatch(test, inferenceResults)
+              });
+              failed++;
+              mismatched = true;
+              break;
+            }
+          }
+          
+          if (!mismatched)
+          {
+            testResults.push({
+              error: false,
+              html: formatSuccessResult(test, inferenceResults)
+            });
+            passes++;
+          }
+        }
+      }
+      catch (error)
+      {
+        testResults.push({
+          error: true,
+          html: formatFailedTest(test, error)
+        });
+        failed++;
+      }
+
+      updateHeader(i + 1, tests.length);
+
+      renderResults(header, testResults, 
+        $('#errorsOnlyCheck').is(':checked'), 
+        $('#scrollCheck').is(':checked'), false);
+    }
+
+    if (failed > 0)
+    {
+      header = `<div class="alert alert-danger">Failures detected (${failed} / ${tests.length} tests failed)</div>`;
+    }
+    else
+    {
+      header = `<div class="alert alert-success">No issues detected (${tests.length} tests passed)</div>`;
+    }
+
+    renderResults(header, testResults, 
+      $('#errorsOnlyCheck').is(':checked'), 
+      false, $('#scrollCheck').is(':checked'));
+  } 
+
+  function renderResults(header, results, errorsOnly, scrollEnd, scrollTop)
+  {
+    var html = '';
+
+    results.forEach(result => {
+      if (!errorsOnly || (errorsOnly && result.error))
+      {
+        html += result.html;
+      }
+    });
+
+    $('#testResults').html(header + html);
+
+    if (scrollEnd)
+    {
+      $('#resultsScroll').scrollTop($('#resultsScroll')[0].scrollHeight);
+    }
+    else if (scrollTop)
+    {
+      $('#resultsScroll').scrollTop(0);
+    }
+  }
+
+  function formatRuleCountMismatch(test, inferenceResults)
+  {
+    var result = `<hr><div class="row"><div class="col-1 text-right"><i class="fas fa-times-circle fa-3x text-danger pt-1"></i></div><div class="col-11">FAIL: ${test.name} (rule count mismatch)
+      <div class="pl-3">
+        Expected ${test.message.expected.length} rules<ul class="m-0">`;
+
+        test.message.expected.forEach(e => {
+          result += `<li>${e}</li>`;
+        });
+
+        result += `</ul>But found ${inferenceResults.length} rules<ul class="m-0">`;
+
+        inferenceResults.forEach(i => {
+          result += `<li>${i.name}</li>`;
+        });
+        result += '</ul></div></div></div>';
+    return result;
+  }
+
+  function formatFailedTest(test, error)
+  {
+    var result = `<hr><div class="row"><div class="col-1 text-right"><i class="fas fa-times-circle fa-3x text-danger pt-1"></i></div><div class="col-11">FAIL: ${test.name} (inferencing failed)
+      <div class="pl-3">
+        Cause:
+        <ul class="m-0">
+          <li>${extractErrorMessage(error)}</li>
+        </ul>
+      </div></div></div>`;
+    return result;
+  }
+
+  function formatRuleMismatch(test, inferenceResults)
+  {
+    var result = `<hr><div class="row"><div class="col-1 text-right"><i class="fas fa-times-circle fa-3x text-danger pt-1"></i></div><div class="col-11">FAIL: ${test.name} (rule name mismatch)
+      <div class="pl-3">
+        Expected rules <ul class="m-0">`;
+
+      test.message.expected.forEach(e => {
+        result += `<li>${e}</li>`;
+      });
+      result += '</ul>Found rules <ul class="m-0">';
+
+      inferenceResults.forEach(i => {
+        result += `<li>${i.name}</li>`;
+      });
+      result += '</ul></div></div></div>';      
+    return result;
+  }
+
+  function formatSuccessResult(test, inferenceResults)
+  {
+    var result = `<hr><div class="row"><div class="col-1 text-right"><i class="fas fa-check-circle fa-3x text-success pt-1"></i></div><div class="col-11">PASS: ${test.name}
+      <div class="pl-3">
+        Expected rules <ul class="m-0">`;
+
+      test.message.expected.forEach(e => {
+        result += `<li>${e}</li>`;
+      });
+      result += '</ul></div></div></div>';
+      return result;
+  }
+
+  async function makeCall(testId)
+  {
+    if (!isStored('phoneNumber'))
+    {
+      $('#setPhoneNumberModal').modal();
+    }
+    else
+    {
+      await outboundTestCall(testId, unstore('phoneNumber'));
+    }
+  }
+
+  $('#setPhoneNumberForm').on('submit', function(e) 
+  {
+    e.preventDefault();
+    store('phoneNumber', $('#newPhoneNumber').val());
+    $('#setPhoneNumberModal').modal('hide');
+    successToast('Saved phone number!');
+  });
+
+</script>

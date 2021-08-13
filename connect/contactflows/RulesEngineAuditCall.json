@@ -1,0 +1,116 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "fea47712-4479-45e2-9b34-6bd492915ec4",
+  "Metadata": {
+    "entryPointPosition": {
+      "x": 15,
+      "y": 20
+    },
+    "snapToGrid": false,
+    "ActionMetadata": {
+      "76c95b63-e1f5-4901-b488-d350f47d35c4": {
+        "position": {
+          "x": 1153,
+          "y": 252
+        }
+      },
+      "fbfed5e5-5093-4e73-9605-5bb88eb844d6": {
+        "position": {
+          "x": 552,
+          "y": 105
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineMain.arn}}",
+          "text": "RulesEngineMain"
+        }
+      },
+      "048b7a0f-8e16-4bb8-9123-bbbe1622ac00": {
+        "position": {
+          "x": 877,
+          "y": 282
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineError.arn}}",
+          "text": "RulesEngineError"
+        }
+      },
+      "fea47712-4479-45e2-9b34-6bd492915ec4": {
+        "position": {
+          "x": 251,
+          "y": 36
+        },
+        "dynamicMetadata": {
+          "action": true,
+          "phoneNumber": true
+        },
+        "useDynamic": false
+      }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "76c95b63-e1f5-4901-b488-d350f47d35c4",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    },
+    {
+      "Identifier": "fbfed5e5-5093-4e73-9605-5bb88eb844d6",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineMain.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "048b7a0f-8e16-4bb8-9123-bbbe1622ac00",
+        "Errors": [
+          {
+            "NextAction": "048b7a0f-8e16-4bb8-9123-bbbe1622ac00",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "048b7a0f-8e16-4bb8-9123-bbbe1622ac00",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineError.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "76c95b63-e1f5-4901-b488-d350f47d35c4",
+        "Errors": [
+          {
+            "NextAction": "76c95b63-e1f5-4901-b488-d350f47d35c4",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "fea47712-4479-45e2-9b34-6bd492915ec4",
+      "Parameters": {
+        "LambdaFunctionARN": "{{lambdaFunctions.connectcreatecallhistory.arn}}",
+        "InvocationTimeLimitSeconds": "7",
+        "LambdaInvocationAttributes": {
+          "phoneNumber": "$.CustomerEndpoint.Address",
+          "action": "$.External.CurrentRule_auditAction"
+        }
+      },
+      "Transitions": {
+        "NextAction": "fbfed5e5-5093-4e73-9605-5bb88eb844d6",
+        "Errors": [
+          {
+            "NextAction": "048b7a0f-8e16-4bb8-9123-bbbe1622ac00",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "InvokeLambdaFunction"
+    }
+  ]
+}

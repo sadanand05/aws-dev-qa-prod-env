@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Request xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Header>
+    <OperatorName>itauser</OperatorName>
+    <UserName>MTCDEV</UserName>
+    <ApplicationName>IVR</ApplicationName>
+    <AccountServer>3</AccountServer>
+  </Header>
+  <CreatePpvOrder>
+    <AccountInternalId>{{Customer.AccountNumber}}</AccountInternalId>
+    <OfferId>{{SelectedEvent.eventId}}</OfferId>
+    <PpvServiceList>
+      {{#each PPVServiceList.Services}}
+      <PpvService>
+        <ViewId>{{this.ViewId}}</ViewId>
+        <ServiceInternalId>{{this.ServiceInternalId}}</ServiceInternalId>
+        <ServiceInternalIdResets>{{this.ServiceInternalIdResets}}</ServiceInternalIdResets>
+      </PpvService>
+      {{/each}}
+    </PpvServiceList>
+  </CreatePpvOrder>
+</Request>

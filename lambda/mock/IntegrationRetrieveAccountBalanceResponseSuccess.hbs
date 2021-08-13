@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Request>
+  <Header>
+    <AccountServer>3</AccountServer>
+  </Header>
+  <RetrieveAccountBalanceResponse>
+    <SuccessFlag>{{Mock.Success}}</SuccessFlag>
+    <AccountBalance>
+      <SumBalance>{{Mock.SumBalance}}</SumBalance>
+      {{#if Mock.PastDueDays1To30}}
+      <PastDueDays1To30>{{Mock.PastDueDays1To30}}</PastDueDays1To30>
+      {{/if}}
+      {{#if Mock.PastDueDays30To60}}
+      <PastDueDays30To60>{{Mock.PastDueDays30To60}}</PastDueDays30To60>
+      {{/if}}
+      {{#if Mock.PastDueDays60To90}}
+      <PastDueDays60To90>{{Mock.PastDueDays60To90}}</PastDueDays60To90>
+      {{/if}}
+      <CurrencyCode>1</CurrencyCode>
+    </AccountBalance>
+  </RetrieveAccountBalanceResponse>
+</Request>

@@ -1,0 +1,40 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+    commands:
+      - npm --version
+      - node --version
+      - npm install
+      - npm install -g serverless --unsafe-perm
+      - serverless --version
+  build:
+    commands:
+      - echo 'Deploying using serverless'
+      - |
+        serverless deploy --force --stage dev
+      - echo 'Updating web config'
+      - |
+        aws cloudformation --region ap-southeast-2 describe-stacks \
+          --stack-name ftacel-fire-dev \
+          --query "Stacks[0].Outputs[?OutputKey=='SiteConfigTemplate'].OutputValue" \
+          --output text > web/config/site_config.json
+      - echo 'Inserting admin user into DynamoDB'
+      - |
+        aws dynamodb put-item \
+          --table-name dev-ftacel-fire-users-ddb \
+          --item file://data/admin.json
+      - echo 'Inserting config data into DynamoDB'
+      - |
+        aws dynamodb put-item \
+          --table-name dev-ftacel-fire-config-ddb \
+          --item file://data/timezone.json
+      - cd web
+      - pwd
+      - echo 'Uploading website content'
+      - |
+        aws s3 sync . s3://dev-ftacel-fire-site-ap-southeast-2-440678296209
+      - echo 'Build deployment complete'
+        

@@ -1,0 +1,202 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "b9efb2b8-3ac4-4e8a-b459-8b4779d809fa",
+  "Metadata": {
+    "entryPointPosition": {
+      "x": 16,
+      "y": 77
+    },
+    "snapToGrid": false,
+    "ActionMetadata": {
+      "bcfec95f-d16a-4479-ba66-750b861f830a": {
+        "position": {
+          "x": 1158,
+          "y": 315
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineError.arn}}",
+          "text": "RulesEngineError"
+        }
+      },
+      "ab49d820-20db-4ea1-bba2-dd0c63e91af9": {
+        "position": {
+          "x": 1425,
+          "y": 402
+        }
+      },
+      "307b6538-dd17-4309-961b-9c383a76db25": {
+        "position": {
+          "x": 541,
+          "y": 15
+        },
+        "useDynamic": true
+      },
+      "10c8974a-aef4-4345-aa0f-d936e953a1d3": {
+        "position": {
+          "x": 546,
+          "y": 355
+        },
+        "useDynamic": true
+      },
+      "a29c465b-a872-4650-80e6-c41098f3abb4": {
+        "position": {
+          "x": 894,
+          "y": 244
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineMain.arn}}",
+          "text": "RulesEngineMain"
+        }
+      },
+      "b9efb2b8-3ac4-4e8a-b459-8b4779d809fa": {
+        "position": {
+          "x": 224,
+          "y": 79
+        },
+        "conditionMetadata": [
+          {
+            "operator": {
+              "name": "Equals",
+              "value": "Equals",
+              "shortDisplay": "="
+            },
+            "value": "ssml",
+            "id": "0be597b2-c37d-44ca-b468-646bc6532ec2"
+          },
+          {
+            "operator": {
+              "name": "Equals",
+              "value": "Equals",
+              "shortDisplay": "="
+            },
+            "value": "prompt",
+            "id": "71faa29c-74f3-48d5-b52e-823623fd49b4"
+          }
+        ]
+      },
+      "3b1d4c35-48a6-46f8-bd31-d14fa8b0cbbf": {
+        "position": {
+          "x": 541,
+          "y": 183
+        },
+        "useDynamic": true
+      }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "bcfec95f-d16a-4479-ba66-750b861f830a",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineError.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "ab49d820-20db-4ea1-bba2-dd0c63e91af9",
+        "Errors": [
+          {
+            "NextAction": "ab49d820-20db-4ea1-bba2-dd0c63e91af9",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "ab49d820-20db-4ea1-bba2-dd0c63e91af9",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    },
+    {
+      "Identifier": "307b6538-dd17-4309-961b-9c383a76db25",
+      "Parameters": {
+        "SSML": "$.External.CurrentRule_message"
+      },
+      "Transitions": {
+        "NextAction": "a29c465b-a872-4650-80e6-c41098f3abb4",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Type": "MessageParticipant"
+    },
+    {
+      "Identifier": "10c8974a-aef4-4345-aa0f-d936e953a1d3",
+      "Parameters": {
+        "Text": "$.External.CurrentRule_message"
+      },
+      "Transitions": {
+        "NextAction": "a29c465b-a872-4650-80e6-c41098f3abb4",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Type": "MessageParticipant"
+    },
+    {
+      "Identifier": "a29c465b-a872-4650-80e6-c41098f3abb4",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineMain.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "bcfec95f-d16a-4479-ba66-750b861f830a",
+        "Errors": [
+          {
+            "NextAction": "bcfec95f-d16a-4479-ba66-750b861f830a",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "b9efb2b8-3ac4-4e8a-b459-8b4779d809fa",
+      "Parameters": {
+        "ComparisonValue": "$.External.CurrentRule_messageType"
+      },
+      "Transitions": {
+        "NextAction": "10c8974a-aef4-4345-aa0f-d936e953a1d3",
+        "Errors": [
+          {
+            "NextAction": "10c8974a-aef4-4345-aa0f-d936e953a1d3",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ],
+        "Conditions": [
+          {
+            "NextAction": "307b6538-dd17-4309-961b-9c383a76db25",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "ssml"
+              ]
+            }
+          },
+          {
+            "NextAction": "3b1d4c35-48a6-46f8-bd31-d14fa8b0cbbf",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                "prompt"
+              ]
+            }
+          }
+        ]
+      },
+      "Type": "Compare"
+    },
+    {
+      "Identifier": "3b1d4c35-48a6-46f8-bd31-d14fa8b0cbbf",
+      "Parameters": {
+        "PromptId": "$.External.CurrentRule_messagePromptArn"
+      },
+      "Transitions": {
+        "NextAction": "a29c465b-a872-4650-80e6-c41098f3abb4",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Type": "MessageParticipant"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Request>
+  <RetrievePaymentProfileResponse>
+    <SuccessFlag>true</SuccessFlag>
+    <AccountInternalId>{{Customer.AccountNumber}}</AccountInternalId>
+    <PaymentProfileList>
+      <PaymentProfile>
+        <PaymentProfileId>{{Mock.PaymentProfileId}}</PaymentProfileId>
+        <OngoingFlag>{{Mock.OngoingFlag}}</OngoingFlag>
+        <CustomerName>{{Customer.AccountName}}</CustomerName>
+        <CardType>{{Mock.CardType}}</CardType>
+        <CardNumber>{{Mock.CardNumber}}</CardNumber>
+        <CardExpiryDate>{{Mock.CardExpiryDate}}</CardExpiryDate>
+        <MaskedCardNumber>{{Mock.MaskedCardNumber}}</MaskedCardNumber>
+      </PaymentProfile>
+    </PaymentProfileList>
+  </RetrievePaymentProfileResponse>
+</Request>

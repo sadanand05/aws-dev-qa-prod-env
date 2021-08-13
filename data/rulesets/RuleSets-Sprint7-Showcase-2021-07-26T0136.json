@@ -1,0 +1,3676 @@
+[
+  {
+    "ruleSetId": "c93f0334-d364-4b3b-a099-629095547a71",
+    "name": "00100000 - Concierge",
+    "description": "Concierge menu",
+    "enabled": true,
+    "inboundNumbers": [
+      "+61279086429",
+      "+61399174068",
+      "+61734973374"
+    ],
+    "rules": [
+      {
+        "ruleSetId": "c93f0334-d364-4b3b-a099-629095547a71",
+        "ruleId": "6d3706b5-4a73-41d1-9256-d734080875bd",
+        "name": "Greeting",
+        "description": "Plays a greeting",
+        "priority": "100",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Good {{System.TimeOfDay}}. Thanks for calling Foxtel!"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c93f0334-d364-4b3b-a099-629095547a71",
+        "ruleId": "b71f4e7b-b06e-4b7c-952a-e6da3b3b3a9a",
+        "name": "Transfers to outages",
+        "description": "Outages menu transfer",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00100100 - Outages"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "146f15dc-e23c-4f04-ac08-55fbb4398036",
+    "name": "00100100 - Outages",
+    "description": "Outages menu",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "146f15dc-e23c-4f04-ac08-55fbb4398036",
+        "ruleId": "8227064e-289c-4efa-a36a-149f62e70790",
+        "name": "COVID messaging",
+        "description": "COVID messaging",
+        "priority": "200",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "We are currently experiencing higher than usual call volumes due to COVID impacts. You may experience longer than usual wait times should you need to speak with a person."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "146f15dc-e23c-4f04-ac08-55fbb4398036",
+        "ruleId": "d6a45e0d-ff66-49a7-b93b-90a37993e81c",
+        "name": "Transfer to Identification",
+        "description": "Transfers to identification",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00100200 - Identification"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+    "name": "00100200 - Identification",
+    "description": "Handles customer identification in the case of multiple accounts or withheld phone number",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "71a82570-7f18-474f-9498-fe6c5bb59fd4",
+        "name": "Main menu when identified",
+        "description": "When the customer is identified or we have no accounts, go to the main menu.",
+        "priority": "1000",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00100300 - Choose customer scenario"
+        },
+        "weights": [
+          {
+            "weightId": "013a35f7-9a67-4c79-b677-0a5b4635131c",
+            "field": "Customer",
+            "operation": "isnotnull",
+            "value": "",
+            "weight": "100"
+          },
+          {
+            "weightId": "4d3fce9f-b9f3-4e55-a186-f45e46330c0a",
+            "field": "NoAccounts",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "d8615959-00db-4229-be55-1718dc807c39",
+        "name": "Identification menu",
+        "description": "Plays a message to show we are in identification",
+        "priority": "900",
+        "activation": "0",
+        "type": "Message",
+        "enabled": false,
+        "params": {
+          "message": "To help us identify your account we need more information from you. The current value of account disambiguate is: {{AccountDisambiguate}}"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "3d876c19-0ba7-4097-ae55-06efc36914ac",
+        "name": "Get phone number",
+        "description": "Prompts the customer for the phone number when CLI is not provided or we found no accounts.",
+        "priority": "800",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter the ten digit phone number associated with your Foxtel account followed by the hash key. Phone numbers should start with zero and include the area code.",
+          "dataType": "Phone",
+          "minLength": "10",
+          "maxLength": "10",
+          "confirmationMessage": "Thanks! I got your phone number as {{characterSpeechFast CustomerPhoneNumber}}. If this is correct press 1. Press 2 to enter a different phone number.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "Ok, lets try that again. \nPlease enter the 10 digit phone number, starting with zero, that is on your Foxtel account.",
+          "errorMessage2": "Ok. Let's try that again.",
+          "errorMessage3": "I am unable to find an account, but our team can help.",
+          "outputStateKey": "CustomerPhoneNumber",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "15e6a1de-c191-452e-a18f-8ceea135af63",
+            "field": "AccountDisambiguate",
+            "operation": "equals",
+            "value": "PhoneNumber",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "b07f6ff0-255e-4028-8873-d2e7ec5e040d",
+        "name": "Get post code",
+        "description": "Prompts the customer for their post code associated with their account",
+        "priority": "600",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "To help us locate your Foxtel account, please enter your 4 digit postcode using your phone's keypad. Then press hash.",
+          "dataType": "Number",
+          "minLength": "4",
+          "maxLength": "4",
+          "confirmationMessage": "Thanks! I got your postcode as {{characterSpeechFast PostCode}}. If this is correct, press 1. To enter a different postcode, press 2.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "You've entered an invalid postcode. Let's try again.",
+          "errorMessage2": "It is still an invalid postcode. Please try again.",
+          "errorMessage3": "Sorry, I did not get that.",
+          "outputStateKey": "PostCode",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "af3fcc35-8845-4cee-941b-fb30f66d2730",
+            "field": "AccountDisambiguate",
+            "operation": "equals",
+            "value": "PostCode",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "dd64ace7-14b0-4d14-916e-0a85731e19b7",
+        "name": "Get date of birth",
+        "description": "Prompts the customer for the date of birth associated with their account",
+        "priority": "500",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "So we can locate your account, please enter your eight digit date of birth using your phone's keypad. Two digits for the day, two digits for the month and four digits for the year. Then press hash.",
+          "dataType": "Date",
+          "minLength": "8",
+          "maxLength": "8",
+          "confirmationMessage": "Thanks! I got your date of birth as the {{dateOfBirthHuman DateOfBirth}}. If this is correct, press 1. To enter a different date of birth, press 2.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "Please enter your date of birth with the Day first.",
+          "errorMessage2": "That is still not a valid date of birth.",
+          "errorMessage3": "Okay, I can't find your account right now, but our team can help.",
+          "outputStateKey": "DateOfBirth",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "b650132c-0ef9-4fb9-91bc-aeb41a8c978b",
+            "field": "AccountDisambiguate",
+            "operation": "equals",
+            "value": "DateOfBirth",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "9444d0f2-16a1-4216-8323-bf25c954cffe",
+        "name": "Found account message",
+        "description": "Plays a message if an account was found",
+        "priority": "400",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Hi {{Customer.FirstName}}, we successfully located your Foxtel account!"
+        },
+        "weights": [
+          {
+            "weightId": "f9af032f-b2af-4688-822b-173ad603aa3d",
+            "field": "Customer",
+            "operation": "isnotnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "e8991e43-e06d-40bf-ba54-d3840837be81",
+        "name": "No account message",
+        "description": "Plays a message when no account was found",
+        "priority": "300",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "We failed to find a Foxtel account, we will get someone to help you."
+        },
+        "weights": [
+          {
+            "weightId": "1309768c-0b8d-4a11-a580-9919c5829a77",
+            "field": "NoAccounts",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66627e8c-e4c5-4a28-a75b-f52c5b54d4a7",
+        "ruleId": "a394ab26-aad1-4a00-9fc2-c4a92f634ae8",
+        "name": "Loop Identification",
+        "description": "Loops back into identification until we have identified",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00100200 - Identification"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "66eb4783-8d05-4837-a528-1fd6b0d80d8e",
+    "name": "00100300 - Choose customer scenario",
+    "description": "Prompts the caller for a customer scenario as a number between 1 and 9 inclusive. This is used to pick mock web service responses.",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "66eb4783-8d05-4837-a528-1fd6b0d80d8e",
+        "ruleId": "201d9cf5-21e7-44b9-8b77-2b347cabbb6f",
+        "name": "Select customer scenario",
+        "description": "Prompts the customer for a single digit customer scenario identifier",
+        "priority": "1000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter a single digit customer scenario identifier using your phone's keypad. Then press hash.",
+          "dataType": "Number",
+          "minLength": "1",
+          "maxLength": "1",
+          "confirmationMessage": "You have selected customer scenario: {{CustomerScenario}}. If this is correct press 1. Press 2 to select a different scenario.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a single digit customer scenario identifier.",
+          "errorMessage2": "You didn't enter a single digit customer scenario identifier. The customer scenario identifier controls mock web service responses.",
+          "errorMessage3": "It sounds like you are having trouble selecting a customer scenario identifier.",
+          "outputStateKey": "CustomerScenario",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "66eb4783-8d05-4837-a528-1fd6b0d80d8e",
+        "ruleId": "78761cbe-b79f-49e8-9635-ede7bc4a56e1",
+        "name": "Transfer to main menu",
+        "description": "Transfers to the main menu",
+        "priority": "100",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00200000 - Foxtel main menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "92d27803-db08-4834-9221-2b38485e2261",
+    "name": "00200000 - Foxtel main menu",
+    "description": "Allows customers to choose their intent from the DTMF menu presented",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "92d27803-db08-4834-9221-2b38485e2261",
+        "ruleId": "36284044-1640-4c31-bd0b-a5aaa827aa0e",
+        "name": "Options to select intent",
+        "description": "Customers enter the intent handling from self service flows. A DTMF menu is presented to the customers to select their intent.",
+        "priority": "99",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00210000 - Billing verification",
+          "dtmf2": "00220000 - Main event menu",
+          "dtmf3": "00230000 - Technical support menu",
+          "dtmf4": "00240000 - Change menu",
+          "dtmf5": "00250000 - Retention menu",
+          "dtmf6": "00500000 - Development menu",
+          "offerMessage": "To make a payment or discuss your bill, press 1.\nTo order a main event, press 2.\nFor help if your Foxtel isn't working properly, press 3.\nTo enquire about changing your Foxtel box, channel package or if you are moving home moving your Foxtel service, press 4.\nTo enquire about cancelling your Foxtel service, press 5.\nTo test features of the rules engine press 6.",
+          "optionCount": "6"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+    "name": "00210000 - Billing verification",
+    "description": "Verifies the customer for billing",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "04521e0e-0bab-496d-8ee3-06666534d759",
+        "name": "Verification attempt increment",
+        "description": "Increments the number of verification attempts for this customer",
+        "priority": "1500",
+        "activation": "0",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "VerificationAttempt",
+          "stateValue": "increment"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "83b7ac95-55a0-42e4-816a-162ba086dd67",
+        "name": "Advise verification attempt count",
+        "description": "Debug the verification attempt count",
+        "priority": "1400",
+        "activation": "0",
+        "type": "Message",
+        "enabled": false,
+        "params": {
+          "message": "This is verification attempt {{VerificationAttempt}}."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "42279581-22e6-48e8-8ef2-c4dd5a509c0a",
+        "name": "Advise of failed verification",
+        "description": "Advises the customer they have failed verification",
+        "priority": "1300",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Sorry, I have failed to verify your identity.  Please hold the line and I will get a Foxtel agent to assist you."
+        },
+        "weights": [
+          {
+            "weightId": "9ca73616-5869-470a-bf9e-81cb97cf8d0a",
+            "field": "VerificationAttempt",
+            "operation": "greaterthan",
+            "value": "2",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "33eaca6c-8c96-439d-8788-436ffafece49",
+        "name": "Fail multiple verification attempts",
+        "description": "If the customer has tried verification more than three times, transfer to an agent",
+        "priority": "1200",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "fc596aa6-3c51-4550-bdbe-b05e5c3a57d7",
+            "field": "VerificationAttempt",
+            "operation": "greaterthan",
+            "value": "2",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "61c3fa6a-b604-42d2-9bca-260266e1d6c7",
+        "name": "Confirm post code",
+        "description": "If the customer hasn't entered post code during identification request and compare",
+        "priority": "1000",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "For security, we need you to confirm the postcode of your Foxtel account. Please enter your 4 digit postcode and then press hash.",
+          "dataType": "Number",
+          "minLength": "4",
+          "maxLength": "4",
+          "confirmationMessage": "Thanks! I got your postcode as {{characterSpeechFast PostCode}}. If this is correct press 1. To re-enter a postcode press 2.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "You've entered an invalid postcode. Let's try again.",
+          "errorMessage2": "It is still an invalid postcode. Please try again.",
+          "errorMessage3": "Sorry, I did not get that.",
+          "outputStateKey": "PostCode",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "753b94d6-7e89-4184-8ada-22168236c43c",
+            "field": "PostCode",
+            "operation": "isnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "83c30a38-c762-421a-af29-53d84cbeb789",
+        "name": "Check the customer postcode",
+        "description": "If the post code doesn't match play an error.",
+        "priority": "900",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The postcode you entered does not match the account postcode."
+        },
+        "weights": [
+          {
+            "weightId": "632b8f97-23f5-4664-accb-64287827895c",
+            "field": "PostCode",
+            "operation": "notequals",
+            "value": "{{Customer.PostCode}}",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "c98d709f-977d-42c4-9cdc-76589fab1da7",
+        "name": "Clear invalid postcode",
+        "description": "Clears invalid post codes",
+        "priority": "800",
+        "activation": "100",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "PostCode",
+          "stateValue": ""
+        },
+        "weights": [
+          {
+            "weightId": "8b4b3df4-8311-4091-aa7f-2eaf05f7014e",
+            "field": "PostCode",
+            "operation": "notequals",
+            "value": "{{Customer.PostCode}}",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "e93f300b-69d1-4f6d-81ef-1605da47c3cf",
+        "name": "Bump invalid postcode",
+        "description": "Bumps invalid postcodes",
+        "priority": "700",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00210000 - Billing verification"
+        },
+        "weights": [
+          {
+            "weightId": "faad9194-b62f-4889-b55a-cf8bedaaf0c9",
+            "field": "PostCode",
+            "operation": "notequals",
+            "value": "{{Customer.PostCode}}",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "e15b4d97-808e-45c2-877a-062121036fa0",
+        "name": "Confirm date of birth",
+        "description": "If the customer hasn't entered their date of birth prompt for it.",
+        "priority": "500",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "For security, we need you to confirm your date of birth. Please enter your 8 digit date of birth using your phone's keypad, and then press hash. Use 2 digits for day, 2 digits for month and 4 digits for year.",
+          "dataType": "Date",
+          "minLength": "8",
+          "maxLength": "8",
+          "confirmationMessage": "Thanks! I got your date of birth as the {{dateOfBirthHuman DateOfBirth}}. If this is correct press 1. Otherwise, to enter another date of birth, press 2.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "Ok. Let's try that again.",
+          "errorMessage2": "Please enter your date of birth. While Entering, please use two numbers for the day, 2 numbers for the month, and 4 numbers for the year.",
+          "errorMessage3": "Okay, I can't find your account right now, but our team can help.",
+          "outputStateKey": "DateOfBirth",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "98bd5f8d-d65a-4570-a470-f1614aadd4bb",
+            "field": "DateOfBirth",
+            "operation": "isnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "f7c755b2-6ebd-49dc-af2d-a922aef98719",
+        "name": "Alerts invalid date of birth",
+        "description": "Tells the customer they didn't get the date of birth",
+        "priority": "400",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The date of birth you entered does not match the account date of birth."
+        },
+        "weights": [
+          {
+            "weightId": "8b5c4c8e-ba0a-4f6a-a1a8-fa0e07fd9a34",
+            "field": "DateOfBirth",
+            "operation": "notequals",
+            "value": "{{Customer.DateOfBirthSimple}}",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "c3b1eb22-e38b-4498-b3eb-019d6554dedc",
+        "name": "Clear invalid date of birth",
+        "description": "Clears invalid date of birth",
+        "priority": "300",
+        "activation": "100",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "DateOfBirth",
+          "stateValue": ""
+        },
+        "weights": [
+          {
+            "weightId": "8e29dc89-38de-4f80-afbd-62517a5fc3f4",
+            "field": "DateOfBirth",
+            "operation": "notequals",
+            "value": "{{Customer.DateOfBirthSimple}}",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "d0872e4c-8119-432d-b0c1-cbf6b6219e00",
+        "name": "Bump invalid date of birth",
+        "description": "If the date of birth is invalid, bump the customer out",
+        "priority": "200",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00210000 - Billing verification"
+        },
+        "weights": [
+          {
+            "weightId": "01db6fb6-9c88-45a9-8a91-d1db5b1a8225",
+            "field": "DateOfBirth",
+            "operation": "notequals",
+            "value": "{{Customer.DateOfBirthSimple}}",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e9d35947-9864-45f1-8e34-757d6ab0ae4e",
+        "ruleId": "8f65ac05-5622-411d-84fd-86aaff68721a",
+        "name": "Go to billing post verification",
+        "description": "Go to billing after verification",
+        "priority": "100",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00211000 - Retrieve payment profile"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "55358d81-4205-48ae-9467-1cecb2225add",
+    "name": "00211000 - Retrieve payment profile",
+    "description": "Fetch the customers overdue and balance.\nCheck if the customer has direct debit already setup or not.\n",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "55358d81-4205-48ae-9467-1cecb2225add",
+        "ruleId": "13c451c9-6941-4c8f-83d3-6a47de0147bd",
+        "name": "Retrieve payment profile",
+        "description": "Loads the customers payment profile",
+        "priority": "1000",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationretrievepaymentprofile",
+          "functionMessage": "<speak>\n  I am looking up your billing details, Please hold the line.\n  <break time=\"3s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "PaymentProfile"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "55358d81-4205-48ae-9467-1cecb2225add",
+        "ruleId": "5da99765-c2c9-4f8f-9d0e-4d41bc73b1df",
+        "name": "Check for errors",
+        "description": "Checks for error loading the customer's payment profile and transfers to a human.",
+        "priority": "900",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "I encountered an error loading your billing details.",
+          "ruleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "f691a1f8-a2f7-4265-9a21-f9192f737b6e",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "5ca99b25-579b-4d45-9dc2-a778c5e44441",
+            "field": "PaymentProfile.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "55358d81-4205-48ae-9467-1cecb2225add",
+        "ruleId": "1963a49b-a881-42ad-b9bf-e33d14d34c99",
+        "name": "Transfers to billing menu",
+        "description": "Transfers to the billing menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "12a051d2-94e1-4ba9-9c46-a2eb9b57a196",
+    "name": "00212000 - Main billing menu",
+    "description": "Main menu for billing handles direct debit and no direct debit options",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "12a051d2-94e1-4ba9-9c46-a2eb9b57a196",
+        "ruleId": "62604feb-ba6c-47b7-a878-7be511dad6fa",
+        "name": "DirectDebit menu",
+        "description": "The menu for customers with an existing direct debit",
+        "priority": "500",
+        "activation": "100",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212100 - Make a payment",
+          "dtmf2": "00212130 - Direct debit setup or not",
+          "dtmf3": "00212300 - Read account balance",
+          "dtmf4": "00212400 - Transfer to billing queue",
+          "offerMessage": "To make a payment press 1.\nTo update your direct debit details press 2.\n{{#ifeq AccountBalancePlayed 'true'}}To hear your account balance again press 3.{{else}}To hear your account balance press 3.{{/ifeq}}\nFor any other billing enquiry press 4.",
+          "optionCount": "4"
+        },
+        "weights": [
+          {
+            "weightId": "7bc97b14-5ed2-4708-81f2-a4a1344aa903",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "notequals",
+            "value": "NONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "12a051d2-94e1-4ba9-9c46-a2eb9b57a196",
+        "ruleId": "8ffc7122-9e4b-4cc6-b91c-a04a8e834ef9",
+        "name": "No DirectDebit menu",
+        "description": "The menu for customers with no direct debit",
+        "priority": "400",
+        "activation": "100",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212100 - Make a payment",
+          "dtmf2": "00212130 - Direct debit setup or not",
+          "dtmf3": "00212300 - Read account balance",
+          "dtmf4": "00212400 - Transfer to billing queue",
+          "offerMessage": "To make a payment press 1.\nTo set up a direct debit press 2.\n{{#ifeq AccountBalancePlayed 'true'}}To hear your account balance again press 3.{{else}}To hear your account balance press 3.{{/ifeq}}\nFor any other billing enquiry press 4.",
+          "optionCount": "4"
+        },
+        "weights": [
+          {
+            "weightId": "851d468b-e021-4ffa-895f-184bd5dd8172",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "equals",
+            "value": "NONE",
+            "weight": "100"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ruleSetId": "7e148700-34a1-45de-851c-81fdf1b982b3",
+    "name": "00212100 - Make a payment",
+    "description": "Customer intent recorded to make a payment",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "7e148700-34a1-45de-851c-81fdf1b982b3",
+        "ruleId": "6b54ded8-987f-45c1-9a46-fe991d2c8683",
+        "name": "Make a payment",
+        "description": "Intent of customer is to make  a payment ",
+        "priority": "500",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "We have recorded your intent to make a payment."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "7e148700-34a1-45de-851c-81fdf1b982b3",
+        "ruleId": "f7b2a81b-783d-49e1-9409-587048efcfb0",
+        "name": "Billing main menu",
+        "description": "Back to billing main menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+    "name": "00212130 - Direct debit setup or not",
+    "description": "Check if customer has existing direct debit with bank account or not",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "c6b90560-35f1-473f-9b56-aaea5e8dc9db",
+        "name": "Sets OfferUpdateDirectDebit flag",
+        "description": "Sets the flag to offer direct debit",
+        "priority": "2000",
+        "activation": "0",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "OfferUpdateDirectDebit",
+          "stateValue": "true"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "29b18359-3d69-452f-a540-1102c264cae3",
+        "name": "Read account balance",
+        "description": "Read the account balance if it hasn't been read already",
+        "priority": "1000",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212300 - Read account balance"
+        },
+        "weights": [
+          {
+            "weightId": "c11a79ad-c919-49f5-91cb-e410cf8efaea",
+            "field": "AccountBalancePlayed",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "921b2496-4bf9-4b24-8e52-6009b871b724",
+        "name": "Clears OfferUpdateDirectDebit",
+        "description": "Clears the OfferUpdateDirectDebit flag",
+        "priority": "950",
+        "activation": "0",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "OfferUpdateDirectDebit",
+          "stateValue": ""
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "93897077-b37e-4c60-899e-20a2506992ef",
+        "name": "Offer bailout for setup",
+        "description": "When customers don't have an exiting direct debit offer a bail out",
+        "priority": "900",
+        "activation": "100",
+        "type": "RuleSetPrompt",
+        "enabled": true,
+        "params": {
+          "offerMessage": "You can set up a Direct Debit so that payments are taken out of your bank account or creditcard.\nIf you would like to continue setting up Direct Debit, press 1.\nIf not, press 2.",
+          "ruleSetName": "00212000 - Main billing menu",
+          "errorRuleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "3016e1b0-72a6-4666-8a44-75ab325cc0b5",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "equals",
+            "value": "NONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "e697546f-6ba4-47b0-9887-53360180228d",
+        "name": "Existing direct debit with bank",
+        "description": "Customer has existing direct debit setup with bank account",
+        "priority": "400",
+        "activation": "100",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212150 - Update direct debit entry point",
+          "dtmf2": "00212000 - Main billing menu",
+          "offerMessage": "You currently have your Direct Debit set up with your bank account.\nTo change your bank account information, press 1.\nTo switch to creditcard, press 2.",
+          "optionCount": "2"
+        },
+        "weights": [
+          {
+            "weightId": "0a03d5c2-26bc-403f-a732-e1fdd54c1913",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "equals",
+            "value": "BANK",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "8ae485bd-053e-458d-86c2-e7cc07b1190e",
+        "name": "Existing direct debit with credit card",
+        "description": "Customer has direct debit setup with credit card",
+        "priority": "300",
+        "activation": "100",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212000 - Main billing menu",
+          "dtmf2": "00212150 - Update direct debit entry point",
+          "offerMessage": "You currently have your Direct Debit set up with a credit card.\nTo change your credit card information, press 1.\nTo switch to bank account, press 2.",
+          "optionCount": "2"
+        },
+        "weights": [
+          {
+            "weightId": "7b0beb8d-63c5-44bf-ae16-96b56225471f",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "equals",
+            "value": "CARD",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "5b27d41e-c1fa-4a02-9045-a2d5bcd49c16",
+        "name": "Customer has no existing direct debit",
+        "description": "When the customer has no existing direct debit offset bank or credit card setup.",
+        "priority": "200",
+        "activation": "100",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212220 - Setup direct debit with bank account entry point",
+          "dtmf2": "00212000 - Main billing menu",
+          "offerMessage": "To use a bank account, press 1.\nTo use a creditcard, press 2.",
+          "optionCount": "2"
+        },
+        "weights": [
+          {
+            "weightId": "75c97004-e532-40c8-bb9b-083f83cb0901",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "equals",
+            "value": "NONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "81edf733-497a-43c1-bb93-9eb5ea32e45a",
+        "ruleId": "47a28144-5cd2-483a-a13e-8b3d94b74c80",
+        "name": "Fall through back to billing menu",
+        "description": "If no previous menus match go back to main menu",
+        "priority": "100",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "c6a47e8a-0417-4d5d-be4e-ee65bc59b62f",
+    "name": "00212150 - Update direct debit entry point",
+    "description": "Educational message and name check of customers who want to update bank details",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "c6a47e8a-0417-4d5d-be4e-ee65bc59b62f",
+        "ruleId": "732782f2-501e-46ce-b313-90e91002bbb4",
+        "name": "Educational message",
+        "description": "Specifies BSB and Account number is required to update direct debit with bank account",
+        "priority": "400",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "To update your Direct Debit with your bank account you'll need the BSB and your account number. Please have those details ready."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c6a47e8a-0417-4d5d-be4e-ee65bc59b62f",
+        "ruleId": "63e8b68e-935d-4c87-8d02-e144b0c98a71",
+        "name": "Name check of customer",
+        "description": "Checks if the customer bank account name is same as Foxtel account name ",
+        "priority": "300",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212210 - Collect BSB and Account number",
+          "dtmf2": "00212160 - If bank account name is different",
+          "offerMessage": "First, If the name on the bank account is the same as the name on the Foxtel account, press 1.\nIf the name is different, press 2.",
+          "optionCount": "2"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "86f4d436-4821-43ae-8e42-78e2475bdbb3",
+    "name": "00212160 - If bank account name is different",
+    "description": "If customer bank account name does not match Foxtel name",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "86f4d436-4821-43ae-8e42-78e2475bdbb3",
+        "ruleId": "9cac99e6-a802-4110-a7bd-ab0a61c822de",
+        "name": "Transfer to agent ",
+        "description": "If name check fails transfer customer to agent queue",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "Direct debit details can only be added or changed by the account holder or an authorised person on the account.",
+          "ruleSetName": "00212500 - Billing error"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+    "name": "00212210 - Collect BSB and Account number",
+    "description": "Customer intent saved to update direct debit",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "0b35e52f-88d3-4e86-a5b9-b53e4f642f23",
+        "name": "Collect customer BSB",
+        "description": "Collect 6 digit BSB from the customer ",
+        "priority": "2000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Using your phone's keypad, please enter your bank's 6 digit BSB number and then press hash.",
+          "dataType": "Number",
+          "minLength": "6",
+          "maxLength": "6",
+          "confirmationMessage": "I understood {{characterSpeechSlow BankAccountBSB}}.\nIf that's correct, press 1.\nTo re-enter BSB, press 2.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "Let's try again. Your bank's BSB number is exactly 6 digits that can be found on your bank statement, or on your bank's website or mobile app.",
+          "errorMessage2": "Let's try one more time.",
+          "errorMessage3": "Sorry, I did not get that.",
+          "outputStateKey": "BankAccountBSB",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "5894f5a7-de16-4c3b-9440-1e7210b62bcc",
+        "name": "Validate BSB",
+        "description": "Validates the BSB",
+        "priority": "1900",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationvalidatebsb",
+          "functionMessage": "<speak>\n   I am checking your BSB. Please hold the line.\n  <break time=\"3s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "ValidateBSB"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "884c0dbb-3c0b-422f-b4a1-4a7f91e82de3",
+        "name": "Count BSB user errors",
+        "description": "Counts the number of user errors in BSB Validation",
+        "priority": "1875",
+        "activation": "200",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "BSBValidationUserErrorCount",
+          "stateValue": "increment"
+        },
+        "weights": [
+          {
+            "weightId": "d8b6d458-1a86-4598-b726-5673f26e04c6",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "d54bff9a-1f42-4f30-bae3-450bd5f8d6bf",
+            "field": "BSBValidation.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "5e341d97-126e-4501-9117-7b3ebea7e58c",
+        "name": "Count BSB system errors",
+        "description": "Count the number of system errors",
+        "priority": "1850",
+        "activation": "100",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "BSBValidationSystemErrorCount",
+          "stateValue": "increment"
+        },
+        "weights": [
+          {
+            "weightId": "0012fd35-48c9-4b2b-9d0e-a136f7c26700",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "51396d9a-444a-47e6-ac68-c21e2b4c190a",
+        "name": "Transfer to agent on repeat BSB validation failures",
+        "description": "If the customer fails BSB validation > 2 times go to an agent",
+        "priority": "1825",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "We failed to validate your BSB number.",
+          "ruleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "5c8e55ed-530a-4978-80da-55ef64566f06",
+            "field": "BSBValidationUserErrorCount",
+            "operation": "greaterthan",
+            "value": "2",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "de6a35a1-0812-4dca-a61e-16ed5ed40391",
+        "name": "Transfer to agent on system error",
+        "description": "Go to agent when system error count > 1",
+        "priority": "1800",
+        "activation": "200",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "We failed to validate your BSB number due to a system error.",
+          "ruleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "8f91e083-6317-48de-8360-086781778a69",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "0d966322-7cca-44a4-8775-dc6119d87036",
+            "field": "BSBValidationSystemErrorCount",
+            "operation": "greaterthan",
+            "value": "1",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "beb4ccfe-6574-4c3d-92c3-ef504d9b8c49",
+        "name": "System error message restart",
+        "description": "Refetches the BSB on first system error",
+        "priority": "1700",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "We detected an issue while validating your BSB. Please try again.",
+          "ruleSetName": "00212210 - Collect BSB and Account number"
+        },
+        "weights": [
+          {
+            "weightId": "5769789a-8aee-46a6-92cf-514206636d0b",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "ad9fb443-db4a-4ba6-9cea-1c1bdf17156b",
+        "name": "Allow the customer to continue",
+        "description": "The customer failed validation of their BSB ask them if they want to try again",
+        "priority": "1600",
+        "activation": "200",
+        "type": "RuleSetPrompt",
+        "enabled": true,
+        "params": {
+          "offerMessage": "The BSB you entered: {{characterSpeechSlow BankAccountBSB}}, was not valid.  If you like to try another BSB press 1. To cancel setting up your direct debit, press 2.",
+          "ruleSetName": "00212000 - Main billing menu",
+          "errorRuleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "f0ae89ff-540e-4f29-8fa3-fb9760dd8ed2",
+            "field": "ValidateBSB.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          },
+          {
+            "weightId": "bd837747-6624-4bc8-a8b5-71a1cdf3464c",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "494824b8-39f2-421a-9100-9473d5a400af",
+        "name": "On BSB validation failure restart",
+        "description": "Restart on BSB validation failures",
+        "priority": "1500",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212210 - Collect BSB and Account number"
+        },
+        "weights": [
+          {
+            "weightId": "7c8d0313-fca1-405e-8829-84e0dbaa8f45",
+            "field": "ValidateBSB.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "e173f35e-e529-4fe1-be54-273d6c7a976d",
+        "name": "Collect bank account number",
+        "description": "Collect bank account number from the customer ",
+        "priority": "1000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Next, please enter your account number, and then press hash.",
+          "dataType": "Number",
+          "minLength": "4",
+          "maxLength": "10",
+          "confirmationMessage": "That was {{characterSpeechSlow BankAccountNumber}}.\nIf correct, press 1.\nTo re-enter Account number, press 2.",
+          "errorRuleSetName": "00212500 - Billing error",
+          "errorMessage1": "Let's try again. Your bank account number is up to 10 digits that can be found on your bank statement near the BSB number, or on your bank's website or mobile app. Please enter it now.",
+          "errorMessage2": "Let's try one more time. If you have your bank account number, please enter it now.",
+          "errorMessage3": "Seems like we're having some trouble.",
+          "outputStateKey": "BankAccountNumber",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "694ae438-4d3f-4e98-a0bc-49d2e62935b7",
+        "name": "Confirm BSB and Account number",
+        "description": "Read out customer BSB & Account number",
+        "priority": "900",
+        "activation": "0",
+        "type": "RuleSetPrompt",
+        "enabled": true,
+        "params": {
+          "offerMessage": "To confirm, you want to update your Direct Debit to use your {{ValidateBSB.BSBName}} account, with BSB number {{characterSpeechSlow BankAccountBSB}},  and account number {{characterSpeechSlow BankAccountNumber}}. \nIf correct, press 1.\nOtherwise, press 2.",
+          "ruleSetName": "00212214 - Change the entered bank details",
+          "errorRuleSetName": "00212500 - Billing error"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "e7d09bc1-b5c9-4bdf-b481-357bd3adeaf5",
+        "name": "Update Direct debit",
+        "description": "Calls setup payment profile",
+        "priority": "800",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationsetuppaymentprofile",
+          "functionMessage": "<speak>\n   I am setting up your direct debit. Please hold the line.\n  <break time=\"3s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "PaymentProfile"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "d5b99fce-4754-45cc-9934-060bce9872da",
+        "name": "Setup payment profile system error",
+        "description": "Advises of system error",
+        "priority": "700",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "We had issues setting up your direct debit."
+        },
+        "weights": [
+          {
+            "weightId": "3265fb0a-ac07-459d-8ff2-49e853b6d8a3",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "dc169fde-992d-4dd0-80b2-ab2ec8e26607",
+        "name": "Transfer on system error",
+        "description": "If we get a failure in Setup payment profile go to an agent",
+        "priority": "600",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212500 - Billing error"
+        },
+        "weights": [
+          {
+            "weightId": "8fd3edfd-8c47-48b6-8dd2-a0b5291b76cc",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "748f3f46-df4c-4fbd-97e6-2728c73f7e52",
+            "field": "PaymentProfile.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "1440e370-9e89-41da-9ef0-a67c84819c04",
+        "ruleId": "64b7fc85-4e5c-4a5d-aead-660e1948aff7",
+        "name": "Back to billing main menu",
+        "description": "Advise success and return to the billing menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "I successfully set up your direct debit!",
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "6c85fd7a-3b2f-433a-883b-52050b142c76",
+    "name": "00212214 - Change the entered bank details",
+    "description": "If customer wish to change the entered bank details",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "6c85fd7a-3b2f-433a-883b-52050b142c76",
+        "ruleId": "e925dd7f-55b6-4ed5-87aa-3c4ff5765f00",
+        "name": "To change the bank details",
+        "description": "If customer wish to change their updated bank account details",
+        "priority": "100",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212210 - Collect BSB and Account number",
+          "dtmf2": "00212000 - Main billing menu",
+          "dtmf3": "00212000 - Main billing menu",
+          "offerMessage": "To change the bank details, press 1.\nTo use a credit card, press 2.\nTo cancel the update, press 3.",
+          "optionCount": "3"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "6c85fd7a-3b2f-433a-883b-52050b142c76",
+        "ruleId": "02579341-c8f0-4592-87c3-04a04feba198",
+        "name": "Change bank details",
+        "description": "If customer wish to change bank details",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212210 - Collect BSB and Account number"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "236ec34b-dbb9-4690-b044-73ac62c81ddd",
+    "name": "00212220 - Setup direct debit with bank account entry point",
+    "description": "Educational message and name check of customers who want to update bank details",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "236ec34b-dbb9-4690-b044-73ac62c81ddd",
+        "ruleId": "de4fdf06-8183-44c9-b667-dd0b629f0b71",
+        "name": "Educational message",
+        "description": "Specifies BSB and Account number is required to update direct debit with bank account",
+        "priority": "400",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "To update your Direct Debit with your bank account you'll need the BSB and your account number. Please have those details ready."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "236ec34b-dbb9-4690-b044-73ac62c81ddd",
+        "ruleId": "94c9cc07-0078-42d4-809e-d27f7d33af50",
+        "name": "Name check of customer",
+        "description": "Checks if the customer bank account name is same as Foxtel account name ",
+        "priority": "300",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00212210 - Collect BSB and Account number",
+          "dtmf2": "00212160 - If bank account name is different",
+          "offerMessage": "First, If the name on the bank account is the same as the name on the Foxtel account, press 1.\nIf the name is different, press 2.",
+          "optionCount": "2"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "236ec34b-dbb9-4690-b044-73ac62c81ddd",
+        "ruleId": "30c26682-f447-4e2d-9690-e7e7b8aac748",
+        "name": "Main billing menu",
+        "description": "When customer intent is update direct debit with bank account",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+    "name": "00212300 - Read account balance",
+    "description": "Fetch account balance details",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "ac510302-96b8-4b66-a9b0-e1d87cf36a5a",
+        "name": "Fetch account balance",
+        "description": "Fetches the customer's account balance",
+        "priority": "1000",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationretrieveaccountbalance",
+          "functionMessage": "<speak>\n  I am looking up your account balance. Please hold the line.\n  <break time=\"3s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "AccountBalance"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "f3943cf4-db1a-467d-b738-fa1b5d9e9120",
+        "name": "Account balance error",
+        "description": "Plays a message on failure to load account balance and returns the billing menu",
+        "priority": "900",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "Sorry, I failed to load your account balance.",
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": [
+          {
+            "weightId": "ae705531-5f4d-43ec-a832-aaeb66ff00df",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "d507d22f-be54-4296-9d46-ea17b3f1b65c",
+            "field": "AccountBalance.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "63b0f6ad-5986-48e0-a883-da0b697f58e1",
+        "name": "Record account balance played",
+        "description": "Records that an account balance has been heard",
+        "priority": "600",
+        "activation": "0",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "AccountBalancePlayed",
+          "stateValue": "true"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "5e08158c-eb80-4bf6-8d91-7b263ad8cdfe",
+        "name": "Zero balance",
+        "description": "Message for customer account balance and overdue equals zero",
+        "priority": "500",
+        "activation": "200",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "You have no outstanding charges on your account, and your balance is zero."
+        },
+        "weights": [
+          {
+            "weightId": "7322491b-2c21-4972-a47a-1242c7a7b849",
+            "field": "AccountBalance.SumBalance",
+            "operation": "equals",
+            "value": "0",
+            "weight": "100"
+          },
+          {
+            "weightId": "47db6d69-b700-4afb-854e-4b16ad93b064",
+            "field": "AccountBalance.PastDueTotal",
+            "operation": "equals",
+            "value": "0",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "b8de143f-986a-40a7-bf47-469ec94bbde8",
+        "name": "Balance with no overdue",
+        "description": "Message for customers with balance but no overdues.",
+        "priority": "400",
+        "activation": "200",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The total amount due is {{formatCentsAsDollars AccountBalance.SumBalance}}."
+        },
+        "weights": [
+          {
+            "weightId": "15b5b9d9-552c-4877-874c-41aead0c6212",
+            "field": "AccountBalance.SumBalance",
+            "operation": "greaterthan",
+            "value": "0",
+            "weight": "100"
+          },
+          {
+            "weightId": "48d0260c-9fc2-45fa-8160-84a5f3ab41f1",
+            "field": "AccountBalance.PastDueTotal",
+            "operation": "equals",
+            "value": "0",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "726bc759-f9b3-4d6b-8c19-cb1029733b16",
+        "name": "Non zero balance with overdues",
+        "description": "Message when a customer has a balance and overdues",
+        "priority": "300",
+        "activation": "200",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The total amount due is {{formatCentsAsDollars AccountBalance.SumBalance}}. The amount of {{formatCentsAsDollars AccountBalance.PastDueTotal}} is now overdue."
+        },
+        "weights": [
+          {
+            "weightId": "1cb8550c-50e0-4d8e-960c-ffa9bc58fbca",
+            "field": "AccountBalance.SumBalance",
+            "operation": "greaterthan",
+            "value": "0",
+            "weight": "100"
+          },
+          {
+            "weightId": "ab9ad416-c939-4ebb-b120-9df35d97f4da",
+            "field": "AccountBalance.PastDueTotal",
+            "operation": "greaterthan",
+            "value": "0",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "f8a39951-95cb-4b3a-83b9-9f7be4d4cc7d",
+        "name": "Go to setup direct debit",
+        "description": "Goes to setup direct debit if required",
+        "priority": "250",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212130 - Direct debit setup or not"
+        },
+        "weights": [
+          {
+            "weightId": "8bf61e52-9409-4b64-a4b9-496ea28718e7",
+            "field": "OfferUpdateDirectDebit",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c2e7245b-2ce3-4de7-8645-86b36e25a683",
+        "ruleId": "1496394b-c98d-4311-a59d-e6bcc3d6547f",
+        "name": "Back to billing menu",
+        "description": "Back to the billing menu",
+        "priority": "200",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "bbcc68c5-96c2-4702-bb0d-fbc8109ab664",
+    "name": "00212400 - Transfer to billing queue",
+    "description": "Transfers the customer to agent queue",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "bbcc68c5-96c2-4702-bb0d-fbc8109ab664",
+        "ruleId": "409299a4-4b6d-4376-a5ad-cb3adf1a9a40",
+        "name": "Skill is closed",
+        "description": "Message when the skill is closed",
+        "priority": "500",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "This department is currently closed. Our operating hours are 8am to 6pm Monday to Friday."
+        },
+        "weights": [
+          {
+            "weightId": "7001fe40-f186-4817-bc71-7e4bd5351391",
+            "field": "System.OperatingHours.Billing.Open",
+            "operation": "equals",
+            "value": "false",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "bbcc68c5-96c2-4702-bb0d-fbc8109ab664",
+        "ruleId": "350841c7-bc36-427b-82f8-5cce29714f67",
+        "name": "Bump the customer",
+        "description": "Skill closed bump to parent menu",
+        "priority": "400",
+        "activation": "100",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212000 - Main billing menu"
+        },
+        "weights": [
+          {
+            "weightId": "44b69a17-19c5-4811-93c9-792d7b45a323",
+            "field": "System.OperatingHours.Billing.Open",
+            "operation": "equals",
+            "value": "false",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "bbcc68c5-96c2-4702-bb0d-fbc8109ab664",
+        "ruleId": "d9e49af0-bae2-4e8d-b885-1e298753aecc",
+        "name": "Privacy message",
+        "description": "Privacy message",
+        "priority": "300",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "We'll be recording this call to help coach and develop our team. \nAny personal information you provide us will be handled in accordance with our privacy policy, which is available at foxtel.com.au"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "bbcc68c5-96c2-4702-bb0d-fbc8109ab664",
+        "ruleId": "a70b7ac5-6f10-4402-97d1-e86e019ea121",
+        "name": "Transfer to agent",
+        "description": "Transfer to agent queue",
+        "priority": "0",
+        "activation": "0",
+        "type": "Queue",
+        "enabled": true,
+        "params": {
+          "queueName": "Billing",
+          "message": ""
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "e6790383-c56b-45ad-9065-eca5c2d90eff",
+    "name": "00212500 - Billing error",
+    "description": "Error during the billing process",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "e6790383-c56b-45ad-9065-eca5c2d90eff",
+        "ruleId": "3253ef47-9d17-4421-bda6-a257217b7f43",
+        "name": "Billing error",
+        "description": "Transfer customer to the agent queue",
+        "priority": "500",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I am having some trouble here. Please hold while I transfer you to an agent."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e6790383-c56b-45ad-9065-eca5c2d90eff",
+        "ruleId": "c594b812-7fb1-483a-a110-a3ff04c263f9",
+        "name": "Transfer to agent",
+        "description": "Transfer to an agent after 3 invalid attempts",
+        "priority": "400",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00212400 - Transfer to billing queue"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "220f6c03-3e6d-4bd0-9946-8a06ce4ae802",
+    "name": "00220000 - Main event menu",
+    "description": "Allows customers to order a main event",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "220f6c03-3e6d-4bd0-9946-8a06ce4ae802",
+        "ruleId": "1dbcc4d5-5c29-4237-b58d-fc77dda00821",
+        "name": "Order main event",
+        "description": "Transfers customers to main event flow",
+        "priority": "100",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Please wait while I transfer you to the main event flow"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "220f6c03-3e6d-4bd0-9946-8a06ce4ae802",
+        "ruleId": "0ccae526-1b08-4f0c-af14-51ae3a89d975",
+        "name": "terminate",
+        "description": "to hang up",
+        "priority": "0",
+        "activation": "0",
+        "type": "Terminate",
+        "enabled": true,
+        "params": {},
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "086b8573-8450-423f-96ce-bb12ff39c187",
+    "name": "00230000 - Technical support menu",
+    "description": "Transfers customers to technical support flow",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "086b8573-8450-423f-96ce-bb12ff39c187",
+        "ruleId": "f4bf0232-140c-462b-b3b0-3718bb27a8c0",
+        "name": "Technical support ",
+        "description": "Customers are transferred to technical support flow for any issues with Foxtel service ",
+        "priority": "110",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Please wait while I transfer you to technical support flow."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "086b8573-8450-423f-96ce-bb12ff39c187",
+        "ruleId": "5da15858-f068-4fc9-9ad7-85e7fbec32bd",
+        "name": "terminate",
+        "description": "to hang up",
+        "priority": "0",
+        "activation": "0",
+        "type": "Terminate",
+        "enabled": true,
+        "params": {},
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "f93131c1-4cb1-42b0-b672-fe2724bcc7b9",
+    "name": "00240000 - Change menu",
+    "description": "Transfers customer to Change flow",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "f93131c1-4cb1-42b0-b672-fe2724bcc7b9",
+        "ruleId": "e1c24c22-caf5-4bda-a016-7b9d9db47233",
+        "name": "Change service flow",
+        "description": "Allows customers to change any of their Foxtel service",
+        "priority": "130",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Please wait while I transfer you to service change flow."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "f93131c1-4cb1-42b0-b672-fe2724bcc7b9",
+        "ruleId": "bccbef29-0726-4645-bef7-1325b315f792",
+        "name": "terminate",
+        "description": "to hang up",
+        "priority": "0",
+        "activation": "0",
+        "type": "Terminate",
+        "enabled": true,
+        "params": {},
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "737ce044-8323-4172-8b73-166b4b4d6b91",
+    "name": "00250000 - Retention menu",
+    "description": "Transfers customer to retention flow",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "737ce044-8323-4172-8b73-166b4b4d6b91",
+        "ruleId": "d977ef2e-3e22-455b-94fe-1e9ab3d9ee3c",
+        "name": "To cancel Foxtel service",
+        "description": "Allows customers to terminate their Foxtel service ",
+        "priority": "140",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Please wait while I transfer you to retention flow."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "737ce044-8323-4172-8b73-166b4b4d6b91",
+        "ruleId": "ea8cb8fc-8c41-4674-9f4b-3d14081d0fb8",
+        "name": "terminate",
+        "description": "To hang up",
+        "priority": "0",
+        "activation": "0",
+        "type": "Terminate",
+        "enabled": true,
+        "params": {},
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "5cc7e301-335d-40ff-8173-c72578b1d916",
+    "name": "00500000 - Development menu",
+    "description": "Development main menu",
+    "enabled": true,
+    "inboundNumbers": [
+      "+61734973370"
+    ],
+    "rules": [
+      {
+        "ruleSetId": "5cc7e301-335d-40ff-8173-c72578b1d916",
+        "ruleId": "cf259e3d-9769-45be-b544-57acedad8fce",
+        "name": "Main menu",
+        "description": "Main menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00510000 - Update menu",
+          "dtmf2": "00520000 - Input menu",
+          "dtmf3": "00530000 - Transfers menu",
+          "dtmf4": "00540000 - Operating hours menu",
+          "dtmf5": "00550000 - Integration menu",
+          "offerMessage": "Press 1 to test update features.\nPress 2 to test input features.\nPress 3 to test transfer features.\nPress 4 to test operating hours.\nPress 5 to test integration features.",
+          "optionCount": "5"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "760e1c64-d750-4dd6-aee8-66219be445b1",
+    "name": "00510000 - Update menu",
+    "description": "Tests update features",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "760e1c64-d750-4dd6-aee8-66219be445b1",
+        "ruleId": "0e33b4f4-d1e9-4169-9df9-8278a92f5b5d",
+        "name": "Menu",
+        "description": "Updates menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00511000 - Test audit",
+          "dtmf2": "00512000 - Test set attribute",
+          "dtmf3": "00513000 - Test update state",
+          "dtmf4": "00514000 - Test metric",
+          "dtmf5": "00500000 - Development menu",
+          "offerMessage": "Press 1 to test the audit feature.\nPress 2 to test setting contact attributes.\nPress 3 to test updating state.\nPress 4 to test emitting a CloudWatch metric.\nPress 5 to return to the main menu.",
+          "optionCount": "5"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "f57d40fa-c05a-404a-a726-793808081a17",
+    "name": "00511000 - Test audit",
+    "description": "Tests the audit feature",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "f57d40fa-c05a-404a-a726-793808081a17",
+        "ruleId": "696865c6-1fe0-4661-899c-e553fa1d228b",
+        "name": "Before message",
+        "description": "Audit message",
+        "priority": "300",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I am about to invoke an audit operation."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "f57d40fa-c05a-404a-a726-793808081a17",
+        "ruleId": "54ded9a6-25de-4434-b84e-2ae4bd577298",
+        "name": "Audit",
+        "description": "Audits an operation",
+        "priority": "200",
+        "activation": "0",
+        "type": "AuditCall",
+        "enabled": true,
+        "params": {
+          "auditAction": "TEST"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "f57d40fa-c05a-404a-a726-793808081a17",
+        "ruleId": "627d2824-70d7-4d9f-85a1-2ed4bd5befba",
+        "name": "After message",
+        "description": "After message",
+        "priority": "100",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The audit operation is complete."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "f57d40fa-c05a-404a-a726-793808081a17",
+        "ruleId": "e87fa5c8-0ae2-48fe-b3c5-bd7136f7fcab",
+        "name": "Return",
+        "description": "Return to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00510000 - Update menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "e1a09b58-1cc5-4997-ac02-797411c30c9b",
+    "name": "00512000 - Test set attribute",
+    "description": "Tests setting a contact attribute",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "e1a09b58-1cc5-4997-ac02-797411c30c9b",
+        "ruleId": "8804a956-1c90-48ef-8836-95adb10861ea",
+        "name": "Before message",
+        "description": "Before message",
+        "priority": "300",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I am about to set a contact attribute."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e1a09b58-1cc5-4997-ac02-797411c30c9b",
+        "ruleId": "b4bd5be0-0bae-42b8-8968-f357ea3b88b9",
+        "name": "Set attribute",
+        "description": "Sets an attribute",
+        "priority": "200",
+        "activation": "0",
+        "type": "SetAttribute",
+        "enabled": true,
+        "params": {
+          "attributeKey": "ftacel_intent",
+          "attributeValue": "SetAttribute"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e1a09b58-1cc5-4997-ac02-797411c30c9b",
+        "ruleId": "0309e210-e1df-4d44-a76c-ed4da6819afc",
+        "name": "After message",
+        "description": "After message",
+        "priority": "100",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I have finished setting the contact attribute."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e1a09b58-1cc5-4997-ac02-797411c30c9b",
+        "ruleId": "7e7450b9-6aad-47a0-9f9d-6bb162106d6e",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00510000 - Update menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+    "name": "00513000 - Test update state",
+    "description": "Tests updating state",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+        "ruleId": "71ee283c-96f0-4f04-b38b-994a5125ae93",
+        "name": "State set message",
+        "description": "Message plays when state is set",
+        "priority": "500",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "A state value already exists with value:  {{TestState}}."
+        },
+        "weights": [
+          {
+            "weightId": "10b15621-5437-4f98-86a6-a02ba0b84233",
+            "field": "TestState",
+            "operation": "isnotnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+        "ruleId": "e5490b06-0297-4c51-9eea-d896498c9903",
+        "name": "State not set message",
+        "description": "Plays when the state is not set",
+        "priority": "400",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "A state value is not currently set."
+        },
+        "weights": [
+          {
+            "weightId": "1b04c422-42b0-4cb8-957b-a7980d9f0475",
+            "field": "TestState",
+            "operation": "isnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+        "ruleId": "4b7abe0a-386a-4692-8a85-725fbc55619c",
+        "name": "Before message",
+        "description": "Message that plays before updating state",
+        "priority": "300",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I am about to set the state value."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+        "ruleId": "2b53418f-1245-4699-9d69-486b286fa88c",
+        "name": "Update state",
+        "description": "Updates the state",
+        "priority": "200",
+        "activation": "0",
+        "type": "UpdateState",
+        "enabled": true,
+        "params": {
+          "stateKey": "TestState",
+          "stateValue": "Over 9000!"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+        "ruleId": "186cfde3-b24c-4f9e-badd-de589b5bf9c4",
+        "name": "After message",
+        "description": "Message that plays after setting the state",
+        "priority": "100",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The value of the state is now: {{TestState}}"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "eb349a1e-a3ae-41c0-bc61-cf1fd6fa886f",
+        "ruleId": "6789f186-1b11-493d-86e3-282c5086711b",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00510000 - Update menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "c68050ef-7294-4d26-94d6-78cbe68d2a6e",
+    "name": "00514000 - Test metric",
+    "description": "Tests emitting metrics",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "c68050ef-7294-4d26-94d6-78cbe68d2a6e",
+        "ruleId": "6477df2d-f957-47be-84cd-88af063ade4c",
+        "name": "Before message",
+        "description": "Message played before the metric",
+        "priority": "300",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I am about to emit a CloudWatch metric."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c68050ef-7294-4d26-94d6-78cbe68d2a6e",
+        "ruleId": "9d80379d-86b8-4aae-acb7-2acdd250971c",
+        "name": "Emit metric",
+        "description": "Emits a metric",
+        "priority": "200",
+        "activation": "0",
+        "type": "Metric",
+        "enabled": true,
+        "params": {
+          "metricName": "AkshayDemo",
+          "metricValue": "1"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c68050ef-7294-4d26-94d6-78cbe68d2a6e",
+        "ruleId": "939e1e62-a2f7-487d-9505-1c9734f42217",
+        "name": "After message",
+        "description": "A message that plays after a metric has been emitted",
+        "priority": "100",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I have successfully emitted a CloudWatch metric."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c68050ef-7294-4d26-94d6-78cbe68d2a6e",
+        "ruleId": "d1ea4668-eb71-4a2a-a870-39284c4776d9",
+        "name": "Return",
+        "description": "Return to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00510000 - Update menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "9e6992cd-b174-4617-b964-934a77d84b2b",
+    "name": "00520000 - Input menu",
+    "description": "Test input features",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "9e6992cd-b174-4617-b964-934a77d84b2b",
+        "ruleId": "44c73530-3972-4154-85f3-14c9f44d7ec8",
+        "name": "Menu",
+        "description": "Inputs menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00521000 - Test get date of birth",
+          "dtmf2": "00522000 - Test get postcode",
+          "dtmf3": "00523000 - Test get phone number",
+          "dtmf4": "00500000 - Development menu",
+          "offerMessage": "Press 1 to test fetching a customer's date of birth.\nPress 2 to test fetching a customer's postcode.\nPress 3 to test fetching a customer's phone number.\nPress 4 to return to the main menu.",
+          "optionCount": "4"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "58e9a78d-7a99-46d8-8956-cfb720a98d94",
+    "name": "00521000 - Test get date of birth",
+    "description": "Tests fetching a date of birth",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "58e9a78d-7a99-46d8-8956-cfb720a98d94",
+        "ruleId": "624fbdd2-1444-4ee9-a28c-5aa611d6feb3",
+        "name": "Read date of birth",
+        "description": "If the customer has already entered a date of birth, read it back",
+        "priority": "300",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "You have already entered your date of birth as the {{dateOfBirthHuman CustomerDOB}}."
+        },
+        "weights": [
+          {
+            "weightId": "76741145-4323-4c8b-9e6f-beb33f01a176",
+            "field": "CustomerDOB",
+            "operation": "isnotnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "58e9a78d-7a99-46d8-8956-cfb720a98d94",
+        "ruleId": "041c8b59-6655-4c76-b332-7645082673cf",
+        "name": "Get date of birth",
+        "description": "Tests reading date of birth",
+        "priority": "200",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter your 8 digit date of birth using your phone's keypad. Then press hash. 2 digits for the day, 2 digits for the month. 4 digits for the year.",
+          "dataType": "Date",
+          "minLength": "8",
+          "maxLength": "8",
+          "confirmationMessage": "You entered your date of birth as the {{dateOfBirthHuman CustomerDOB}}.  If this is correct, press 1.  Press 2 to enter another date of birth.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You failed to enter a valid date of birth.",
+          "errorMessage2": "You failed a second time to enter a valid date of birth.",
+          "errorMessage3": "It sounds like you are having issues entering your date of birth. I will fetch someone to assist you.",
+          "outputStateKey": "CustomerDOB",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "235d20f5-8898-4547-adf5-0973ec7ce4fd",
+            "field": "CustomerDOB",
+            "operation": "isnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "58e9a78d-7a99-46d8-8956-cfb720a98d94",
+        "ruleId": "9477f2f8-c6f9-4c83-b272-9be38b517dda",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00520000 - Input menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "66fcaae3-3116-43c7-9995-45defb6af28b",
+    "name": "00522000 - Test get postcode",
+    "description": "Test fetching customer postcode",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "66fcaae3-3116-43c7-9995-45defb6af28b",
+        "ruleId": "db120a57-9a48-4585-9dce-2b68cbcdc640",
+        "name": "Read postcode",
+        "description": "Reads a postcode back to a customer",
+        "priority": "200",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "You have already provided your postcode as {{characterSpeechSlow PostCode}}."
+        },
+        "weights": [
+          {
+            "weightId": "d2fcab87-8426-4917-92fb-7ad2ac6f077c",
+            "field": "PostCode",
+            "operation": "isnotnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66fcaae3-3116-43c7-9995-45defb6af28b",
+        "ruleId": "05b85c26-6548-4e3c-ba4a-862565ea6a02",
+        "name": "Fetch post code",
+        "description": "Fetches post code from the customer",
+        "priority": "100",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter the 4 digit postcode for your Foxtel account and then press hash.",
+          "dataType": "Number",
+          "minLength": "4",
+          "maxLength": "4",
+          "confirmationMessage": "You entered your post code as {{characterSpeechSlow PostCode}}. If this is correct press 1. Press 2 to enter another postcode.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You failed to enter a valid 4 digit postcode.",
+          "errorMessage2": "Use your phone's keypad to enter a 4 digit postcode.",
+          "errorMessage3": "It sounds like you are having issues entering your postcode. I will fetch someone to assist.",
+          "outputStateKey": "PostCode",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "1d8af06c-739a-4ee0-8e13-54a7ede9fb55",
+            "field": "PostCode",
+            "operation": "isnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "66fcaae3-3116-43c7-9995-45defb6af28b",
+        "ruleId": "8ad6cd2d-f9bb-4042-891e-847f1b70fc69",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00520000 - Input menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "057efe31-eae0-40e9-b15a-b3d886b2ffb0",
+    "name": "00523000 - Test get phone number",
+    "description": "Tests fetching a phone number",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "057efe31-eae0-40e9-b15a-b3d886b2ffb0",
+        "ruleId": "11b0c3ee-0a61-4026-be63-db0f549b08d6",
+        "name": "Read phone number",
+        "description": "If the phone is set read it back",
+        "priority": "200",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "You have already provided your phone number as {{characterSpeechSlow PhoneNumber}}."
+        },
+        "weights": [
+          {
+            "weightId": "acbe1e26-3c69-42e6-a35d-7800f362c1e7",
+            "field": "PhoneNumber",
+            "operation": "isnotnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "057efe31-eae0-40e9-b15a-b3d886b2ffb0",
+        "ruleId": "1d7f7239-5071-4d61-81b5-343fd95520b3",
+        "name": "Get phone number",
+        "description": "Tests fetching a phone number",
+        "priority": "100",
+        "activation": "100",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter the ten digit phone number associated with your Foxtel account and then press hash. Please include the area code. All numbers should start with a zero.",
+          "dataType": "Phone",
+          "minLength": "10",
+          "maxLength": "10",
+          "confirmationMessage": "You entered your phone number as {{characterSpeechSlow PhoneNumber}}. If this is correct press 1. To enter another number press 2.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a valid phone number.",
+          "errorMessage2": "The phone number you entered was not valid. It must start with a 0 and be 10 digits long.",
+          "errorMessage3": "It sounds like you are having issues entering your phone number. I will fetch someone to assist you.",
+          "outputStateKey": "PhoneNumber",
+          "errorCount": "0"
+        },
+        "weights": [
+          {
+            "weightId": "5779f000-34cb-4761-a690-ac9175a8a54d",
+            "field": "PhoneNumber",
+            "operation": "isnull",
+            "value": "",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "057efe31-eae0-40e9-b15a-b3d886b2ffb0",
+        "ruleId": "9dae8e83-b448-4845-a6a3-c5324e4bbd73",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00520000 - Input menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "be341875-6818-4af3-81e1-ed47e969e9e8",
+    "name": "00530000 - Transfers menu",
+    "description": "Tests transfer features like queue and flow transfers",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "be341875-6818-4af3-81e1-ed47e969e9e8",
+        "ruleId": "ad929057-01cd-481e-95a1-5ea4c2d1775b",
+        "name": "Menu",
+        "description": "Transfer menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00531000 - Test queue transfer",
+          "dtmf2": "00532000 - Test flow transfer",
+          "dtmf3": "00533000 - Test external number",
+          "dtmf4": "00534000 - Test rule set prompt",
+          "dtmf5": "00535000 - Test rule set with message",
+          "dtmf6": "00500000 - Development menu",
+          "offerMessage": "Press 1 to test a queue transfer.\nPress 2 to test a flow transfer.\nPress 3 to transfer to an external number.\nPress 4 to test a rule set prompt.\nPress 5 to test a rule set message.\nPress 6 to return to the main menu.",
+          "optionCount": "6"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "c85e40ab-d93e-4abb-b8c2-22352d3d3239",
+    "name": "00531000 - Test queue transfer",
+    "description": "Tests queue transfers",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "c85e40ab-d93e-4abb-b8c2-22352d3d3239",
+        "ruleId": "515aaead-9172-404a-9f99-59d76dc6ef0d",
+        "name": "Queue transfer",
+        "description": "Transfers to a queue",
+        "priority": "100",
+        "activation": "0",
+        "type": "Queue",
+        "enabled": true,
+        "params": {
+          "queueName": "TechnicalSupport",
+          "message": "I am transferring you to the technical support queue."
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "c57294aa-a4ab-459a-aacc-0309a7c50ed1",
+    "name": "00532000 - Test flow transfer",
+    "description": "Tests transfer to a flow",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "c57294aa-a4ab-459a-aacc-0309a7c50ed1",
+        "ruleId": "9ee0570f-12ff-4944-aa39-069cc0ddd564",
+        "name": "Flow transfer",
+        "description": "Tests transfer to a flow",
+        "priority": "100",
+        "activation": "0",
+        "type": "Flow",
+        "enabled": true,
+        "params": {
+          "flowName": "Sample inbound flow (first contact experience)",
+          "message": "I am transferring you to a flow."
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "8b612321-bc52-4fcc-8f2e-0b87b82b1561",
+    "name": "00533000 - Test external number",
+    "description": "Tests transferring to an external number",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "8b612321-bc52-4fcc-8f2e-0b87b82b1561",
+        "ruleId": "be1bfbe9-c956-4a07-a4c7-78bf3b527aa5",
+        "name": "External transfer",
+        "description": "Transfers to an external number",
+        "priority": "100",
+        "activation": "0",
+        "type": "ExternalNumber",
+        "enabled": true,
+        "params": {
+          "externalNumber": "+61422529062"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "52cbd758-77a7-42af-b531-4e2d2725a945",
+    "name": "00534000 - Test rule set prompt",
+    "description": "Tests rule set prompt features",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "52cbd758-77a7-42af-b531-4e2d2725a945",
+        "ruleId": "4edb45e3-9294-4d0d-8714-4677e2e79b05",
+        "name": "Rule set prompt",
+        "description": "Tests rule set prompt",
+        "priority": "500",
+        "activation": "0",
+        "type": "RuleSetPrompt",
+        "enabled": true,
+        "params": {
+          "offerMessage": "To continue, press 1. To return to the transfers menu press 2.",
+          "ruleSetName": "00530000 - Transfers menu",
+          "errorRuleSetName": "00590000 - Development errors"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "52cbd758-77a7-42af-b531-4e2d2725a945",
+        "ruleId": "772b0b67-06e6-4fb5-b61c-cc8bf97f02ef",
+        "name": "Continuation message",
+        "description": "Message that plays if the user continues",
+        "priority": "400",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "If you hear this message you pressed 1 to continue."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "52cbd758-77a7-42af-b531-4e2d2725a945",
+        "ruleId": "7a4f01c7-7177-4a74-be7b-00bb921cb17a",
+        "name": "Parent menu",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00530000 - Transfers menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "de1ae2ad-850e-434a-8b66-e9fedb27986d",
+    "name": "00535000 - Test rule set with message",
+    "description": "Tests a rule set with an optional message",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "de1ae2ad-850e-434a-8b66-e9fedb27986d",
+        "ruleId": "d8e1ceda-5dad-4550-a5ed-42fbcd5b6462",
+        "name": "Rule set with a message",
+        "description": "Rule set with a message",
+        "priority": "100",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "I am about to transfer you to the transfers menu.",
+          "ruleSetName": "00530000 - Transfers menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "76d3aadd-4907-4eb7-b246-2c41cd701c2b",
+    "name": "00535001 - Test rule set with message 2",
+    "description": "Tests a rule set with an optional message",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "76d3aadd-4907-4eb7-b246-2c41cd701c2b",
+        "ruleId": "2a98b405-2ae1-4869-91f1-a582e6f36bdb",
+        "name": "Rule set with a message",
+        "description": "Rule set with a message",
+        "priority": "100",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "message": "I am about to transfer you to the transfers menu.",
+          "ruleSetName": "00530000 - Transfers menu"
+        },
+        "weights": [
+          {
+            "weightId": "cb039deb-81e8-4944-9cd3-d4b726597d19",
+            "field": "Foo",
+            "operation": "notequals",
+            "value": "bar",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "76d3aadd-4907-4eb7-b246-2c41cd701c2b",
+        "ruleId": "6deb81ac-15c3-49f2-8d4e-b3c949ad6b59",
+        "name": "Foo",
+        "description": "Bar",
+        "priority": "0",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Betch"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "37a29cb7-757a-4153-af7b-9f538c3db0cd",
+    "name": "00540000 - Operating hours menu",
+    "description": "Test operating hours",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "37a29cb7-757a-4153-af7b-9f538c3db0cd",
+        "ruleId": "dce9540c-cdd6-4de0-953d-307dc465621f",
+        "name": "DTMF menu",
+        "description": "DTMF menu for operating hours",
+        "priority": "100",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00541000 - Morning hours",
+          "dtmf2": "00542000 - Afternoon hours",
+          "dtmf3": "00543000 - Always open hours",
+          "dtmf4": "00544000 - Always closed hours",
+          "dtmf5": "00500000 - Development menu",
+          "offerMessage": "To test morning hours press 1.\nTo test afternoon hours press 2.\nTo test always open hours press 3.\nTo test always closed hours press 4.\nTo return to the main menu press 5",
+          "optionCount": "5"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "a5146941-145a-4cc4-9778-b81f3c4ffe92",
+    "name": "00541000 - Morning hours",
+    "description": "Tests morning hours",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "a5146941-145a-4cc4-9778-b81f3c4ffe92",
+        "ruleId": "dd0ea680-6b08-4ed2-ad8a-a5d11bb653ec",
+        "name": "Open message",
+        "description": "Plays a message when the morning skill is open",
+        "priority": "500",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The time is currently: {{System.TimeLocal}} in the {{System.TimeOfDay}}. The morning skill is currently open."
+        },
+        "weights": [
+          {
+            "weightId": "6d715ec4-1cd5-4710-8335-c5da0d027cc0",
+            "field": "System.OperatingHours.Morning.Open",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "a5146941-145a-4cc4-9778-b81f3c4ffe92",
+        "ruleId": "1597dca9-0d18-421b-a3d5-ffc97a3b8015",
+        "name": "Closed message",
+        "description": "Plays a message when the morning skill is closed",
+        "priority": "400",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The time is currently: {{System.TimeLocal}} in the {{System.TimeOfDay}}. The morning skill is currently closed."
+        },
+        "weights": [
+          {
+            "weightId": "77507aec-e175-43cd-8f4e-16146226d1fc",
+            "field": "System.OperatingHours.Morning.Open",
+            "operation": "equals",
+            "value": "false",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "a5146941-145a-4cc4-9778-b81f3c4ffe92",
+        "ruleId": "a8640390-5215-4cbd-97da-9d5b75964e28",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00540000 - Operating hours menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "947c9cad-33ba-4c37-9d97-0da1b08e749b",
+    "name": "00542000 - Afternoon hours",
+    "description": "Tests afternoon hours",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "947c9cad-33ba-4c37-9d97-0da1b08e749b",
+        "ruleId": "93dbec71-c166-4cb2-b823-b8b744dba7f5",
+        "name": "Open message",
+        "description": "Plays a message when the afternoon skill is open.",
+        "priority": "500",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The time is currently {{System.TimeLocal}} in the {{System.TimeOfDay}}. The afternoon skill is currently open."
+        },
+        "weights": [
+          {
+            "weightId": "49b46d34-1b73-4e24-a878-7d82b3756072",
+            "field": "System.OperatingHours.Afternoon.Open",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "947c9cad-33ba-4c37-9d97-0da1b08e749b",
+        "ruleId": "9e632970-2fd5-497e-ae87-d8719205b8be",
+        "name": "Closed message",
+        "description": "Plays a message when the afternoon skill is closed.",
+        "priority": "400",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The time is currently {{System.TimeLocal}} in the {{System.TimeOfDay}}. The afternoon skill is currently closed."
+        },
+        "weights": [
+          {
+            "weightId": "41fe63ef-3286-4264-b434-6287f9c76616",
+            "field": "System.OperatingHours.Afternoon.Open",
+            "operation": "equals",
+            "value": "false",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "947c9cad-33ba-4c37-9d97-0da1b08e749b",
+        "ruleId": "280945fe-490e-4732-9230-276bd82034ef",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00540000 - Operating hours menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "462f43a3-3116-4e62-ba1e-100e5c9ee644",
+    "name": "00543000 - Always open hours",
+    "description": "Tests always open hours",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "462f43a3-3116-4e62-ba1e-100e5c9ee644",
+        "ruleId": "3c7aeb8e-797c-4ca3-9c58-4a94998df5b0",
+        "name": "Open message",
+        "description": "Plays a message when the always open skill is open",
+        "priority": "500",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The time is {{System.TimeLocal}} in the {{System.TimeOfDay}}. The always open skill is currently open."
+        },
+        "weights": [
+          {
+            "weightId": "8d4c1fa2-b2e3-4add-ade1-552275d0c4c0",
+            "field": "System.OperatingHours.AlwaysOpen.Open",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "462f43a3-3116-4e62-ba1e-100e5c9ee644",
+        "ruleId": "bc91112e-8d8c-457c-a022-432024482145",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00540000 - Operating hours menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "f8d8eb70-dca1-4130-81bd-e8571fa1fae4",
+    "name": "00544000 - Always closed hours",
+    "description": "Tests always closed hours",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "f8d8eb70-dca1-4130-81bd-e8571fa1fae4",
+        "ruleId": "e99282f2-de54-4eb4-8aba-355a67f83745",
+        "name": "Closed message",
+        "description": "Plays a message when the closed message is closed",
+        "priority": "500",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "The time is {{System.TimeLocal}} in the {{System.TimeOfDay}}. The always closed skill is currently closed."
+        },
+        "weights": [
+          {
+            "weightId": "96a94568-21bc-4c9a-bb8e-2e8b611419bd",
+            "field": "System.OperatingHours.AlwaysClosed.Open",
+            "operation": "equals",
+            "value": "false",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "f8d8eb70-dca1-4130-81bd-e8571fa1fae4",
+        "ruleId": "a8adb7b1-901f-4712-b031-69aa265eaefb",
+        "name": "Return",
+        "description": "Returns to the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00540000 - Operating hours menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "eec4b13e-8c57-43d6-a2c9-4987ecda0038",
+    "name": "00550000 - Integration menu",
+    "description": "Test integration functions",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "eec4b13e-8c57-43d6-a2c9-4987ecda0038",
+        "ruleId": "8b9ce430-8acf-4dca-a367-d53efc89c2cc",
+        "name": "Integration menu",
+        "description": "Integration menu",
+        "priority": "500",
+        "activation": "0",
+        "type": "DTMFMenu",
+        "enabled": true,
+        "params": {
+          "dtmf1": "00551000 - Account balance",
+          "dtmf2": "00552000 - Setup payment profile",
+          "dtmf3": "00553000 - Validate BSB",
+          "dtmf4": "00554000 - Retrieve payment profile",
+          "dtmf5": "00500000 - Development menu",
+          "offerMessage": "Press 1 to test retrieve account balance.\nPress 2 to test setup payment profile.\nPress 3 to test BSB validation.\nPress 4 to return to the main menu.",
+          "optionCount": "5"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "e8271b98-74d2-46b2-88cf-c547003a614f",
+    "name": "00551000 - Account balance",
+    "description": "Loads account balance",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "e8271b98-74d2-46b2-88cf-c547003a614f",
+        "ruleId": "0676598b-64cb-4ac5-aa46-d8bf85c9ae8c",
+        "name": "Fetch customer scenario",
+        "description": "Fetches the customer scenario",
+        "priority": "1000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter a single digit customer scenario identifier using your phone's keypad. Then press hash.",
+          "dataType": "Number",
+          "minLength": "1",
+          "maxLength": "1",
+          "confirmationMessage": "You have selected customer scenario: {{CustomerScenario}}. If this is correct press 1. Press 2 to select a different scenario.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a single digit customer scenario identifier.",
+          "errorMessage2": "You didn't enter a single digit customer scenario identifier. The customer scenario identifier controls mock web service responses.",
+          "errorMessage3": "It sounds like you are having trouble selecting a customer scenario identifier.",
+          "outputStateKey": "CustomerScenario",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e8271b98-74d2-46b2-88cf-c547003a614f",
+        "ruleId": "ff9908ec-58c5-4763-bdb9-1ac47fb1e68a",
+        "name": "Account balance",
+        "description": "Loads account balance",
+        "priority": "500",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationretrieveaccountbalance",
+          "functionMessage": "<speak>\n  I am just loading your account balance, please hold the line.\n  <break time=\"2s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "AccountBalance"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "e8271b98-74d2-46b2-88cf-c547003a614f",
+        "ruleId": "3c47332e-942c-4abf-835c-275662feac13",
+        "name": "Plays account balance",
+        "description": "Plays the customer's account balance",
+        "priority": "400",
+        "activation": "200",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Your account balance is currently {{formatCentsAsDollars AccountBalance.SumBalance}}.  Your overdue amount is currently {{formatCentsAsDollars AccountBalance.PastDueTotal}}."
+        },
+        "weights": [
+          {
+            "weightId": "fefa118f-8ed0-48cd-81fa-ee6a8988d29d",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "139b742f-9b99-46a2-ab5c-49eb62152842",
+            "field": "AccountBalance.Success",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e8271b98-74d2-46b2-88cf-c547003a614f",
+        "ruleId": "acbc2bcc-9014-422a-b944-2d163029c478",
+        "name": "Debug error",
+        "description": "Debugs an integration error",
+        "priority": "300",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Retrieving account balance failed. The error cause was:  {{IntegrationErrorCause}}"
+        },
+        "weights": [
+          {
+            "weightId": "5128cdcc-354b-44b0-b4a0-74994572a223",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "ERROR",
+            "weight": "100"
+          },
+          {
+            "weightId": "e7011b00-c3e2-424b-bb5a-eb15e9ac6183",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "TIMEOUT",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "e8271b98-74d2-46b2-88cf-c547003a614f",
+        "ruleId": "247c8e2b-a1fb-4fa3-a477-7b5f5b6e0f97",
+        "name": "Return",
+        "description": "Returns the the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00550000 - Integration menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+    "name": "00552000 - Setup payment profile",
+    "description": "Sets up a payment profile",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+        "ruleId": "37442dd3-d076-4978-a8cd-04d96192adf0",
+        "name": "Get BSB",
+        "description": "Fetches BSB",
+        "priority": "1000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter your 6 digit B.S.B. number, and then press hash.",
+          "dataType": "Number",
+          "minLength": "6",
+          "maxLength": "6",
+          "confirmationMessage": "I received your B.S.B. number as {{characterSpeechFast BankAccountBSB}}. If this is correct, press 1. To enter another B.S.B. number, press 2.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a valid B.S.B number.",
+          "errorMessage2": "You didn't enter a valid 6 digit B.S.B. number. This is provided by your bank.",
+          "errorMessage3": "It sounds like you are having issues entering your B.S.B. number. I will fetch someone to help.",
+          "outputStateKey": "BankAccountBSB",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+        "ruleId": "f6b49db0-1387-4aed-846f-30dc1ee139f5",
+        "name": "Get bank account number",
+        "description": "Fetches the bank account number",
+        "priority": "900",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter your bank account number using your telephone's keypad. Then press hash.",
+          "dataType": "Number",
+          "minLength": "4",
+          "maxLength": "10",
+          "confirmationMessage": "I received your bank account number as {{characterSpeechFast BankAccountNumber}}. If this is correct, press 1. To enter another bank account number, press 2.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a valid bank account number.",
+          "errorMessage2": "You failed to enter a valid bank account number.",
+          "errorMessage3": "It sounds like you are having issues entering your bank account number. I will fetch someone to help you.",
+          "outputStateKey": "BankAccountNumber",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+        "ruleId": "2e4af156-b0d3-4a19-8a60-aed5b5f01d04",
+        "name": "Set up a payment profile",
+        "description": "Sets up a payment profile",
+        "priority": "500",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationsetuppaymentprofile",
+          "functionMessage": "<speak>\n  I am about to setup a payment profile.\n  <break time=\"2s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "SetupPaymentProfile"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+        "ruleId": "298ea701-e963-4a25-b263-0c0053a5ce46",
+        "name": "Advise of receipt number",
+        "description": "Advises of the receipt number",
+        "priority": "400",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Your receipt number is: {{characterSpeechSlow SetupPaymentProfile.ReceiptNumber}}"
+        },
+        "weights": [
+          {
+            "weightId": "b685dcb5-9155-4108-a008-f2a39ac20636",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+        "ruleId": "8280dbd1-7977-4488-bdd4-bb33d0ddd481",
+        "name": "Advise error",
+        "description": "Advises the customer of an error",
+        "priority": "300",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "An error occurred while setting up your payment profile. The cause was: {{IntegrationErrorCause}}."
+        },
+        "weights": [
+          {
+            "weightId": "fdbe16d6-34e3-4af3-9e73-238e3b43a582",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "ERROR",
+            "weight": "100"
+          },
+          {
+            "weightId": "7cbe6dc3-4085-4683-afc3-80e57657426d",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "TIMEOUT",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "c0837cae-1e32-44f2-a4c6-98924e8d971b",
+        "ruleId": "d40d93be-1c0b-42e5-9759-7f7aa1c22c22",
+        "name": "Return to parent menu",
+        "description": "Returns to the parent menu",
+        "priority": "100",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00550000 - Integration menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "8089c93b-5995-40e7-bc1e-4b785417acdd",
+    "name": "00553000 - Validate BSB",
+    "description": "Tests BSB validation",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "8089c93b-5995-40e7-bc1e-4b785417acdd",
+        "ruleId": "f8607fef-7518-4026-81cd-d934aef93f0a",
+        "name": "Fetch a BSB",
+        "description": "Fetches a BSB for validation. Current valid BSB numbers: \n   ANZ - 012002\n   CBA - 064000\n   NAB - 082001",
+        "priority": "1000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter your 6 digit B.S.B. and then press hash.",
+          "dataType": "Number",
+          "minLength": "6",
+          "maxLength": "6",
+          "confirmationMessage": "You entered your B.S.B as {{characterSpeechFast BankAccountBSB}}. If this is correct press 1. Press 2 to enter another B.S.B.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a 6 digit B.S.B. number.",
+          "errorMessage2": "You didn't enter a 6 digit B.S.B. number. \nYou can try these mocked banks:\nANZ {{characterSpeechFast '012002'}}. \nCBA {{characterSpeechFast '064000'}}.\nNAB {{characterSpeechFast '082001'}}.",
+          "errorMessage3": "It sounds like you are having trouble entering your B.S.B. number. I will fetch someone to assist you.",
+          "outputStateKey": "BankAccountBSB",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "8089c93b-5995-40e7-bc1e-4b785417acdd",
+        "ruleId": "679fc048-41d2-48b7-9705-61f1e697c8c0",
+        "name": "Validate BSB",
+        "description": "Validates a BSB",
+        "priority": "900",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationvalidatebsb",
+          "functionMessage": "<speak>\n  I am validating your BSB number. Please hold the line.\n  <break time=\"3s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "ValidateBSB"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "8089c93b-5995-40e7-bc1e-4b785417acdd",
+        "ruleId": "9dcb3604-c4b7-4a80-9fb9-59a6f9772a60",
+        "name": "Validation failure",
+        "description": "Message on validation failure",
+        "priority": "800",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I failed to validate your BSB: {{characterSpeechFast BankAccountBSB}}"
+        },
+        "weights": [
+          {
+            "weightId": "2630603e-9646-4234-bdcb-bf099744abf4",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "21a5d7df-90f7-44c3-8c75-d14ec00aa00a",
+            "field": "ValidateBSB.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "8089c93b-5995-40e7-bc1e-4b785417acdd",
+        "ruleId": "d21abad2-aeb6-4201-83b4-8c4cddae721c",
+        "name": "Validation success",
+        "description": "Message successful BSB validation",
+        "priority": "700",
+        "activation": "200",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "I validated your BSB Number and located your bank as: {{characterSpeechFast ValidateBSB.BankCode}}"
+        },
+        "weights": [
+          {
+            "weightId": "40b6ffe4-0c41-43c1-97ed-7e1e54b728b4",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "6901be83-6758-46e9-aa4d-b1b5c4528f7a",
+            "field": "ValidateBSB.Success",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "8089c93b-5995-40e7-bc1e-4b785417acdd",
+        "ruleId": "eac08626-7874-4f17-ac06-23d7602be5b3",
+        "name": "Back to parent menu",
+        "description": "Back to parent menu",
+        "priority": "600",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00550000 - Integration menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+    "name": "00554000 - Retrieve payment profile",
+    "description": "Tests retrieving a customer's payment profile",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+        "ruleId": "25116d1a-3a96-4b4d-a0fc-33be1c637c23",
+        "name": "Fetch customer scenario",
+        "description": "Fetches the customer scenario",
+        "priority": "1000",
+        "activation": "0",
+        "type": "DTMFInput",
+        "enabled": true,
+        "params": {
+          "offerMessage": "Please enter a single digit customer scenario identifier using your phone's keypad. Then press hash.",
+          "dataType": "Number",
+          "minLength": "1",
+          "maxLength": "1",
+          "confirmationMessage": "You have selected customer scenario: {{CustomerScenario}}. If this is correct press 1. Press 2 to select a different scenario.",
+          "errorRuleSetName": "00590000 - Development errors",
+          "errorMessage1": "You didn't enter a single digit customer scenario identifier.",
+          "errorMessage2": "You didn't enter a single digit customer scenario identifier. The customer scenario identifier controls mock web service responses.",
+          "errorMessage3": "It sounds like you are having trouble selecting a customer scenario identifier.",
+          "outputStateKey": "CustomerScenario",
+          "errorCount": "0"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+        "ruleId": "864d5cf6-74f3-4e82-9998-94d60c6ea105",
+        "name": "Retrieve payment profile",
+        "description": "Retrieves payment profile for a customer",
+        "priority": "500",
+        "activation": "0",
+        "type": "Integration",
+        "enabled": true,
+        "params": {
+          "functionName": "integrationretrievepaymentprofile",
+          "functionMessage": "<speak>\n  I am just looking up your account details. Please hold the line.\n  <break time=\"1s\"/>\n</speak>",
+          "functionTimeout": "30",
+          "functionOutputKey": "PaymentProfile"
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+        "ruleId": "d19c3c9f-7d73-4bb0-b766-f39d26ca3008",
+        "name": "Read payment profile details",
+        "description": "Plays details of the retrieved payment profile",
+        "priority": "400",
+        "activation": "300",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Your payment profile is currently set up with type: {{PaymentProfile.PaymentProfileType}}"
+        },
+        "weights": [
+          {
+            "weightId": "29b64d74-c5d8-45e5-b043-028eca6dc7df",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "32809261-2933-444f-8ebe-e48cd7c9e4a1",
+            "field": "PaymentProfile.Success",
+            "operation": "equals",
+            "value": "true",
+            "weight": "100"
+          },
+          {
+            "weightId": "18fc2155-8bea-4c47-a55f-acf6bbc0f74d",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "notequals",
+            "value": "NONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+        "ruleId": "5e410c16-ee27-44a7-8644-9f7f7260be70",
+        "name": "No payment profile",
+        "description": "Plays a message when the customer has no recurring payment profile",
+        "priority": "300",
+        "activation": "200",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "You have no recurring payments set up."
+        },
+        "weights": [
+          {
+            "weightId": "1c9ccdf2-632e-442b-89c2-3cf0ec444f2f",
+            "field": "PaymentProfile.PaymentProfileType",
+            "operation": "equals",
+            "value": "NONE",
+            "weight": "100"
+          },
+          {
+            "weightId": "b3c27166-1923-4902-8806-6d91194de9de",
+            "field": "IntegrationStatus",
+            "operation": "equals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+        "ruleId": "fa6cf8eb-4a61-4241-b77c-3c6fc1642328",
+        "name": "Debug error",
+        "description": "Debugs an integration error",
+        "priority": "200",
+        "activation": "100",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "Retrieving payment profile failed. {{#if IntegrationErrorCause}}The error cause was:  {{IntegrationErrorCause}}{{/if}}"
+        },
+        "weights": [
+          {
+            "weightId": "e07831fc-1631-4762-a7ad-7fa5288071ae",
+            "field": "PaymentProfile.Success",
+            "operation": "notequals",
+            "value": "true",
+            "weight": "100"
+          },
+          {
+            "weightId": "a52a5149-2c75-452f-9347-27651e89c3d5",
+            "field": "IntegrationStatus",
+            "operation": "notequals",
+            "value": "DONE",
+            "weight": "100"
+          }
+        ]
+      },
+      {
+        "ruleSetId": "75c2c285-defd-46cd-8065-fc2cf6055768",
+        "ruleId": "55a7610f-49d0-4cbd-a95a-4f47fa38ec8d",
+        "name": "Return",
+        "description": "Returns the the parent menu",
+        "priority": "0",
+        "activation": "0",
+        "type": "RuleSet",
+        "enabled": true,
+        "params": {
+          "ruleSetName": "00550000 - Integration menu"
+        },
+        "weights": []
+      }
+    ]
+  },
+  {
+    "ruleSetId": "7285876f-826c-4038-b76e-0a5099887096",
+    "name": "00590000 - Development errors",
+    "description": "Rule set that gets development errors",
+    "enabled": true,
+    "inboundNumbers": [],
+    "rules": [
+      {
+        "ruleSetId": "7285876f-826c-4038-b76e-0a5099887096",
+        "ruleId": "de42020e-fa54-4b95-bf6d-f89ca1c402fd",
+        "name": "Error message",
+        "description": "Plays an error message",
+        "priority": "1000",
+        "activation": "0",
+        "type": "Message",
+        "enabled": true,
+        "params": {
+          "message": "This is the development error rule set. You will land here if you repeatedly enter invalid inputs."
+        },
+        "weights": []
+      },
+      {
+        "ruleSetId": "7285876f-826c-4038-b76e-0a5099887096",
+        "ruleId": "738220a4-2ec4-44dd-9d93-0f9c75b4523e",
+        "name": "Hang up",
+        "description": "Hangs up for now",
+        "priority": "0",
+        "activation": "0",
+        "type": "Terminate",
+        "enabled": true,
+        "params": {},
+        "weights": []
+      }
+    ]
+  }
+]

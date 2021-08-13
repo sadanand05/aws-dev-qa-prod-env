@@ -1,0 +1,9 @@
+{
+    "UserId": {"S": "706d50da-d485-11eb-95bd-a3fa79679837"},
+    "APIKey": {"S": "68c37c56-d485-11eb-92ec-237d8bcde9e4"},
+    "FirstName": {"S": "Josh"},
+    "LastName": {"S": "Passenger"},
+    "EmailAddress": {"S": "josh.passenger@foxtel.com.au"},
+    "UserEnabled": {"S": "true"},
+    "UserRole": {"S": "ADMINISTRATOR"}
+}

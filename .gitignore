@@ -1,0 +1,10 @@
+.serverless
+node_modules
+.DS_Store
+scripts
+assets
+build
+temp
+data/local_admin.json
+web/config/site_config.json
+

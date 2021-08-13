@@ -1,0 +1,39 @@
+<Request>
+  <Header/>
+  <RetrievePpvListingResponse>
+    <SuccessFlag>true</SuccessFlag>
+    {{#each MainEvents.Dates}}
+    <Date>
+      <Day>{{this.Day}}</Day>
+      <Movies>
+        {{#each this.Events}}
+        <Movie>
+          <OfferId>{{this.OfferId}}</OfferId>
+          <Title>{{this.Title}}</Title>
+          <AlternativeTitle>{{this.AlternativeTitle}}</AlternativeTitle>
+          <ItemDescription>{{this.ItemDescription}}</ItemDescription>
+          <PriceAni>{{this.PriceAni}}</PriceAni>
+          <Genre>{{this.Genre}}</Genre>
+          <ParentalRating>{{this.ParentalRating}}</ParentalRating>
+          <Duration>{{this.Duration}}</Duration>
+          <ExpiryDate>{{this.ExpiryDate}}</ExpiryDate>
+          <ExpiryTime>{{this.ExpiryTime}}</ExpiryTime>
+          <IVRLookupCode/>
+          <ScheduleID>{{this.ScheduleID}}</ScheduleID>
+          <SessionTimes>
+            {{#each this.SessionTimes}}
+            <Session>
+              <SessionId>{{this.SessionId}}</SessionId>
+              <StartDate>{{this.StartDate}}</StartDate>
+              <StartTime>{{this.StartTime}}</StartTime>
+              <ChannelId>{{this.ChannelId}}</ChannelId>
+            </Session>
+            {{/each}}
+          </SessionTimes>
+        </Movie>
+        {{/each}}
+      </Movies>
+    </Date>
+    {{/each}}
+  </RetrievePpvListingResponse>
+</Request>

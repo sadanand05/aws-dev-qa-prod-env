@@ -1,0 +1,116 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "f21235cc-07cf-4d90-aec2-6a4665f80e0f",
+  "Metadata": {
+    "entryPointPosition": {
+      "x": 15,
+      "y": 15
+    },
+    "snapToGrid": false,
+    "ActionMetadata": {
+      "f21235cc-07cf-4d90-aec2-6a4665f80e0f": {
+        "position": {
+          "x": 236,
+          "y": 32
+        },
+        "dynamicMetadata": {
+          "metricName": true,
+          "metricValue": true
+        },
+        "useDynamic": false
+      },
+      "21ef6e44-5c5e-4228-8f2a-9fc9731a0b87": {
+        "position": {
+          "x": 577,
+          "y": 102
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineMain.arn}}",
+          "text": "RulesEngineMain"
+        }
+      },
+      "f397cc00-9d33-4235-be70-b6d3235c15df": {
+        "position": {
+          "x": 945,
+          "y": 243
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineError.arn}}",
+          "text": "RulesEngineError"
+        }
+      },
+      "8d53c29f-5d66-4cc6-8e8c-9fb0adb4f34a": {
+        "position": {
+          "x": 1261,
+          "y": 336
+        }
+      }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "f21235cc-07cf-4d90-aec2-6a4665f80e0f",
+      "Parameters": {
+        "LambdaFunctionARN": "{{lambdaFunctions.connectputmetric.arn}}",
+        "InvocationTimeLimitSeconds": "7",
+        "LambdaInvocationAttributes": {
+          "metricName": "$.External.CurrentRule_metricName",
+          "metricValue": "$.External.CurrentRule_metricValue"
+        }
+      },
+      "Transitions": {
+        "NextAction": "21ef6e44-5c5e-4228-8f2a-9fc9731a0b87",
+        "Errors": [
+          {
+            "NextAction": "f397cc00-9d33-4235-be70-b6d3235c15df",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "InvokeLambdaFunction"
+    },
+    {
+      "Identifier": "21ef6e44-5c5e-4228-8f2a-9fc9731a0b87",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineMain.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "f397cc00-9d33-4235-be70-b6d3235c15df",
+        "Errors": [
+          {
+            "NextAction": "f397cc00-9d33-4235-be70-b6d3235c15df",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "f397cc00-9d33-4235-be70-b6d3235c15df",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineError.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "8d53c29f-5d66-4cc6-8e8c-9fb0adb4f34a",
+        "Errors": [
+          {
+            "NextAction": "8d53c29f-5d66-4cc6-8e8c-9fb0adb4f34a",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "8d53c29f-5d66-4cc6-8e8c-9fb0adb4f34a",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    }
+  ]
+}

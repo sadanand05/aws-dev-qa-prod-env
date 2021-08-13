@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Request xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Header>
+    <OperatorName>itauser</OperatorName>
+    <UserName>MTCDEV</UserName>
+    <ApplicationName>IVR</ApplicationName>
+    <AccountServer>3</AccountServer>
+  </Header>
+  <ExecuteInventoryAction>
+    <AccountInternalId>{{Customer.AccountNumber}}</AccountInternalId>
+    <SerialNumber>62117644435</SerialNumber>
+    <ActionId>108</ActionId>
+    {{!-- Need to pass separate action id for Resync, Intialize smart card and Reboot setup box --}}
+  </ExecuteInventoryAction>
+</Request>

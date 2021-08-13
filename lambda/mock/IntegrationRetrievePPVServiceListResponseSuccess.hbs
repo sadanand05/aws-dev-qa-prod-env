@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Request>
+  <Header>
+    <AccountServer>3</AccountServer>
+  </Header>
+  <RetrievePpvServiceListResponse>
+    <SuccessFlag>true</SuccessFlag>
+    <PpvAccount>
+      <AccountInternalId>{{Customer.AccountNumber}}</AccountInternalId>
+      <MultipleAddressFlag>false</MultipleAddressFlag>
+      <MultipleAddressViolationFlag>false</MultipleAddressViolationFlag>
+      <MultipleOfferBuysFlag>false</MultipleOfferBuysFlag>
+      <MultipleOrderItemsFlag>false</MultipleOrderItemsFlag>
+      <MultipleOutletFlag>false</MultipleOutletFlag>
+      <NoOutletFlag>false</NoOutletFlag>
+      <NoServiceFlag>false</NoServiceFlag>
+      <NoValidOfferBuyFlag>false</NoValidOfferBuyFlag>
+      <OfferExpiredFlag>false</OfferExpiredFlag>
+      <OfferScheduleViolationFlag>false</OfferScheduleViolationFlag>
+      <WSStatusFlag>false</WSStatusFlag>
+      <PpvServiceList>
+        {{#each Mock.Services}}
+        <PpvService>
+          <ViewId>{{this.ViewId}}</ViewId>
+          <ServiceInternalId>{{this.ServiceInternalId}}</ServiceInternalId>
+          <ServiceInternalIdResets>{{this.ServiceInternalIdResets}}</ServiceInternalIdResets>
+          <EmfConfigId>3</EmfConfigId>
+          <State>String</State>
+          <InventoryList>
+            {{#each this.Inventories}}
+            <Inventory>
+              <InventoryTypeId>{{this.InventoryTypeId}}</InventoryTypeId>
+              <SerialNumber>{{this.SerialNumber}}</SerialNumber>
+              <ViewId>{{this.ViewId}}</ViewId>
+            </Inventory>
+            {{/each}}
+          </InventoryList>
+        </PpvService>
+        {{/each}}
+      </PpvServiceList>
+    </PpvAccount>
+  </RetrievePpvServiceListResponse>
+</Request>

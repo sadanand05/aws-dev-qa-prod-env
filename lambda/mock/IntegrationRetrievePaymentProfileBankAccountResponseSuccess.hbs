@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Request>
+  <RetrievePaymentProfileResponse>
+    <SuccessFlag>true</SuccessFlag>
+    <AccountInternalId>{{Customer.AccountNumber}}</AccountInternalId>
+    <PaymentProfileList>
+      <PaymentProfile>
+        <PaymentProfileId>{{Mock.PaymentProfileId}}</PaymentProfileId>
+        <OngoingFlag>{{Mock.OngoingFlag}}</OngoingFlag>
+        <CustomerName>{{Customer.AccountName}}</CustomerName>
+        <BankAccountNumber>{{Mock.BankAccountNumber}}</BankAccountNumber>
+        <BSBNumber>{{Mock.BSBNumber}}</BSBNumber>
+      </PaymentProfile>
+    </PaymentProfileList>
+  </RetrievePaymentProfileResponse>
+</Request>

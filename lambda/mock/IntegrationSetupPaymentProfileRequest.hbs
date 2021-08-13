@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-16" standalone="no"?>
+<Request xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Header>
+    <OperatorName>itauser</OperatorName>
+    <UserName>MTCDEV</UserName>
+    <ApplicationName>IVR</ApplicationName>
+    <AccountServer>3</AccountServer>
+  </Header>
+  <SetupPaymentProfile>
+    <AccountInternalId>23456788</AccountInternalId>
+    <Amount>10000</Amount>
+    <EasyPayFlag>false</EasyPayFlag>
+    <TransactionFlag>T</TransactionFlag>
+    <DirectDebit>
+      <BankAccountNumber>{{BankAccountNumber}}</BankAccountNumber>
+      <BSB>{{BankAccountBSB}}</BSB>
+      <FirstName>{{Customer.FirstName}}</FirstName>
+      <LastName>{{Customer.LastName}}</LastName>
+    </DirectDebit> 
+  </SetupPaymentProfile>
+</Request>

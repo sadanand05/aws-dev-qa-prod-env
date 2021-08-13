@@ -1,0 +1,116 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "3644cac9-8b76-499d-992c-6406c98cd8a7",
+  "Metadata": {
+    "entryPointPosition": {
+      "x": 20,
+      "y": 15
+    },
+    "snapToGrid": false,
+    "ActionMetadata": {
+      "43898242-7ef0-4546-93fd-792539e503e1": {
+        "position": {
+          "x": 1155,
+          "y": 347
+        }
+      },
+      "a388e5a4-399b-4ad3-9da9-3c04e52f2561": {
+        "position": {
+          "x": 867,
+          "y": 262
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineError.arn}}",
+          "text": "RulesEngineError"
+        }
+      },
+      "3644cac9-8b76-499d-992c-6406c98cd8a7": {
+        "position": {
+          "x": 227,
+          "y": 28
+        },
+        "dynamicMetadata": {
+          "key": true,
+          "value": true
+        },
+        "useDynamic": false
+      },
+      "aa59096c-fd46-4f49-b1d1-9fef353ce9cb": {
+        "position": {
+          "x": 550,
+          "y": 99
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineMain.arn}}",
+          "text": "RulesEngineMain"
+        }
+      }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "43898242-7ef0-4546-93fd-792539e503e1",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    },
+    {
+      "Identifier": "a388e5a4-399b-4ad3-9da9-3c04e52f2561",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineError.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "43898242-7ef0-4546-93fd-792539e503e1",
+        "Errors": [
+          {
+            "NextAction": "43898242-7ef0-4546-93fd-792539e503e1",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "3644cac9-8b76-499d-992c-6406c98cd8a7",
+      "Parameters": {
+        "LambdaFunctionARN": "{{lambdaFunctions.connectsetattribute.arn}}",
+        "InvocationTimeLimitSeconds": "3",
+        "LambdaInvocationAttributes": {
+          "value": "$.External.CurrentRule_attributeValue",
+          "key": "$.External.CurrentRule_attributeKey"
+        }
+      },
+      "Transitions": {
+        "NextAction": "aa59096c-fd46-4f49-b1d1-9fef353ce9cb",
+        "Errors": [
+          {
+            "NextAction": "a388e5a4-399b-4ad3-9da9-3c04e52f2561",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "InvokeLambdaFunction"
+    },
+    {
+      "Identifier": "aa59096c-fd46-4f49-b1d1-9fef353ce9cb",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineMain.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "a388e5a4-399b-4ad3-9da9-3c04e52f2561",
+        "Errors": [
+          {
+            "NextAction": "a388e5a4-399b-4ad3-9da9-3c04e52f2561",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    }
+  ]
+}

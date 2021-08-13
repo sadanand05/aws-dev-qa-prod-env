@@ -1,0 +1,167 @@
+{
+  "Version": "2019-10-30",
+  "StartAction": "3f4fdd58-512f-4188-9baa-faba7baf5d0c",
+  "Metadata": {
+    "entryPointPosition": {
+      "x": 15,
+      "y": 20
+    },
+    "snapToGrid": false,
+    "ActionMetadata": {
+      "76c95b63-e1f5-4901-b488-d350f47d35c4": {
+        "position": {
+          "x": 1714,
+          "y": 420
+        }
+      },
+      "3f4fdd58-512f-4188-9baa-faba7baf5d0c": {
+        "position": {
+          "x": 236,
+          "y": 37
+        },
+        "conditionMetadata": [
+          {
+            "operator": {
+              "name": "Equals",
+              "value": "Equals",
+              "shortDisplay": "="
+            },
+            "id": "eccce754-c381-40b5-994c-a048b057e6b9"
+          }
+        ]
+      },
+      "114d723c-949a-4629-8f38-bcc47bdf8594": {
+        "position": {
+          "x": 482,
+          "y": 280
+        },
+        "useDynamic": true
+      },
+      "4a1253b1-feb9-4681-93d5-29bf9b44b399": {
+        "position": {
+          "x": 1445,
+          "y": 339
+        },
+        "useDynamic": false,
+        "ContactFlow": {
+          "id": "{{contactFlows.RulesEngineError.arn}}",
+          "text": "RulesEngineError"
+        }
+      },
+      "e3afa7d0-ad72-4398-8e3d-e4b69bb33ae7": {
+        "position": {
+          "x": 789,
+          "y": 87
+        },
+        "useDynamic": true,
+        "queue": "CurrentRule_queueArn"
+      },
+      "c0c6b20c-f94f-4f2b-bbc9-404519ee8f8d": {
+        "position": {
+          "x": 1153,
+          "y": 130
+        },
+        "useDynamic": false
+      }
+    }
+  },
+  "Actions": [
+    {
+      "Identifier": "76c95b63-e1f5-4901-b488-d350f47d35c4",
+      "Type": "DisconnectParticipant",
+      "Parameters": {},
+      "Transitions": {}
+    },
+    {
+      "Identifier": "3f4fdd58-512f-4188-9baa-faba7baf5d0c",
+      "Parameters": {
+        "ComparisonValue": "$.External.CurrentRule_message"
+      },
+      "Transitions": {
+        "NextAction": "114d723c-949a-4629-8f38-bcc47bdf8594",
+        "Errors": [
+          {
+            "NextAction": "114d723c-949a-4629-8f38-bcc47bdf8594",
+            "ErrorType": "NoMatchingCondition"
+          }
+        ],
+        "Conditions": [
+          {
+            "NextAction": "e3afa7d0-ad72-4398-8e3d-e4b69bb33ae7",
+            "Condition": {
+              "Operator": "Equals",
+              "Operands": [
+                null
+              ]
+            }
+          }
+        ]
+      },
+      "Type": "Compare"
+    },
+    {
+      "Identifier": "114d723c-949a-4629-8f38-bcc47bdf8594",
+      "Parameters": {
+        "Text": "$.External.CurrentRule_message"
+      },
+      "Transitions": {
+        "NextAction": "e3afa7d0-ad72-4398-8e3d-e4b69bb33ae7",
+        "Errors": [],
+        "Conditions": []
+      },
+      "Type": "MessageParticipant"
+    },
+    {
+      "Identifier": "4a1253b1-feb9-4681-93d5-29bf9b44b399",
+      "Parameters": {
+        "ContactFlowId": "{{contactFlows.RulesEngineError.arn}}"
+      },
+      "Transitions": {
+        "NextAction": "76c95b63-e1f5-4901-b488-d350f47d35c4",
+        "Errors": [
+          {
+            "NextAction": "76c95b63-e1f5-4901-b488-d350f47d35c4",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferToFlow"
+    },
+    {
+      "Identifier": "e3afa7d0-ad72-4398-8e3d-e4b69bb33ae7",
+      "Parameters": {
+        "QueueId": "$.External.CurrentRule_queueArn"
+      },
+      "Transitions": {
+        "NextAction": "c0c6b20c-f94f-4f2b-bbc9-404519ee8f8d",
+        "Errors": [
+          {
+            "NextAction": "4a1253b1-feb9-4681-93d5-29bf9b44b399",
+            "ErrorType": "NoMatchingError"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "UpdateContactTargetQueue"
+    },
+    {
+      "Identifier": "c0c6b20c-f94f-4f2b-bbc9-404519ee8f8d",
+      "Transitions": {
+        "NextAction": "4a1253b1-feb9-4681-93d5-29bf9b44b399",
+        "Errors": [
+          {
+            "NextAction": "4a1253b1-feb9-4681-93d5-29bf9b44b399",
+            "ErrorType": "NoMatchingError"
+          },
+          {
+            "NextAction": "4a1253b1-feb9-4681-93d5-29bf9b44b399",
+            "ErrorType": "QueueAtCapacity"
+          }
+        ],
+        "Conditions": []
+      },
+      "Type": "TransferContactToQueue"
+    }
+  ]
+}

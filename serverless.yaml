@@ -1,0 +1,1976 @@
+service: ftacel-fire
+
+provider:
+  name: aws
+  region: ${opt:region, 'ap-southeast-2'}
+  runtime: nodejs12.x
+  endpointType: REGIONAL
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 60
+  deploymentBucket:
+    name: ${env:deploymentBucket}
+  deploymentPrefix: 'applications/ftacel/fire'
+  apiGateway:
+    shouldStartNameWithService: true
+  lambdaHashingVersion: 20201221
+
+custom:
+  accountNumber: ${env:accountNumber, 'CHANGEME'}
+  instanceId: ${env:instanceId, 'CHANGEME'}
+  outboundNumber: ${env:outboundNumber, 'CHANGEME'}
+  environmentName: ${env:environmentName, 'Unknown'}
+  deployVersion: ${env:deployVersion, '1.0.36 (Sprint 8 Showcase)'}
+  callCentreTimeZone: ${env:callCentreTimeZone, 'Australia/Melbourne'}
+
+  # Foxtel specific end point urls
+  bsbValidateUrl: ${env:bsbValidateUrl, 'https://CHANGEME/'}
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+functions:
+
+  getlastchange:
+    handler: lambda/GetLastChange.handler
+    name: '${self:provider.stage}-${self:service}-getlastchange'
+    description: 'Fetches the time the model last changed'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetLastChange.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/lastchange
+          method: get
+          cors: true
+
+  getrulesets:
+    handler: lambda/GetRuleSets.handler
+    name: '${self:provider.stage}-${self:service}-getrulesets'
+    description: 'Fetches a list of rule sets'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetRuleSets.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rulesets
+          method: get
+          cors: true
+
+  getrulesetsforexport:
+    handler: lambda/GetRuleSetsForExport.handler
+    name: '${self:provider.stage}-${self:service}-getrulesetsforexport'
+    description: 'Fetches the rules sets and rules for export'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetRuleSetsForExport.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/rulesetsforexport
+          method: get
+          cors: true
+
+  importrulesets:
+    handler: lambda/ImportRuleSets.handler
+    name: '${self:provider.stage}-${self:service}-importrulesets'
+    description: 'Imports rule sets and rules into the system'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ImportRuleSets.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rulesetsimport
+          method: post
+          cors: true
+
+  getrulesetsgraph:
+    handler: lambda/GetRuleSetsGraph.handler
+    name: '${self:provider.stage}-${self:service}-getrulesetsgraph'
+    description: 'Fetches a graph model of the rule sets'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetRuleSetsGraph.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rulesetsgraph
+          method: get
+          cors: true
+
+  getruleset:
+    handler: lambda/GetRuleSet.handler
+    name: '${self:provider.stage}-${self:service}-getruleset'
+    description: 'Fetches a rule set and contained rules'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetRuleSet.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/ruleset
+          method: get
+          cors: true
+
+  createruleset:
+    handler: lambda/CreateRuleSet.handler
+    name: '${self:provider.stage}-${self:service}-createruleset'
+    description: 'Creates a new rule set'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CreateRuleSet.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/ruleset
+          method: put
+          cors: true
+
+  createholiday:
+    handler: lambda/CreateHoliday.handler
+    name: '${self:provider.stage}-${self:service}-createholiday'
+    description: 'Creates a new holiday'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CreateHoliday.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      CONFIG_TABLE: !Ref ConfigTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/holiday
+          method: put
+          cors: true
+
+  saveholiday:
+    handler: lambda/SaveHoliday.handler
+    name: '${self:provider.stage}-${self:service}-saveholiday'
+    description: 'Creates a new holiday'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/SaveHoliday.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      CONFIG_TABLE: !Ref ConfigTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/holiday
+          method: post
+          cors: true
+
+  getholidays:
+    handler: lambda/GetHolidays.handler
+    name: '${self:provider.stage}-${self:service}-getholidays'
+    description: 'Fetches all holidays'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetHolidays.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      CONFIG_TABLE: !Ref ConfigTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/holidays
+          method: get
+          cors: true
+
+  deleteholiday:
+    handler: lambda/DeleteHoliday.handler
+    name: '${self:provider.stage}-${self:service}-deleteholiday'
+    description: 'Deletes a holiday'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteHoliday.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      CONFIG_TABLE: !Ref ConfigTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/holiday
+          method: delete
+          cors: true
+
+  deleteruleset:
+    handler: lambda/DeleteRuleSet.handler
+    name: '${self:provider.stage}-${self:service}-deleteruleset'
+    description: 'Deletes an existing rule set'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteRuleSet.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/ruleset
+          method: delete
+          cors: true
+
+  renameruleset:
+    handler: lambda/RenameRuleSet.handler
+    name: '${self:provider.stage}-${self:service}-renameruleset'
+    description: 'Renames a rule set'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/RenameRuleSet.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rulesetname
+          method: post
+          cors: true
+
+  renamerule:
+    handler: lambda/RenameRule.handler
+    name: '${self:provider.stage}-${self:service}-renamerule'
+    description: 'Renames a rule'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/RenameRule.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rulename
+          method: post
+          cors: true
+
+  cloneruleset:
+    handler: lambda/CloneRuleSet.handler
+    name: '${self:provider.stage}-${self:service}-cloneruleset'
+    description: 'Clones a rule set'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CloneRuleSet.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rulesetclone
+          method: post
+          cors: true
+
+  getrule:
+    handler: lambda/GetRule.handler
+    name: '${self:provider.stage}-${self:service}-getrule'
+    description: 'Fetches a rule'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetRule.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/rule
+          method: get
+          cors: true
+
+  createrule:
+    handler: lambda/CreateRule.handler
+    name: '${self:provider.stage}-${self:service}-createrule'
+    description: 'Creates a new rule'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CreateRule.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rule
+          method: put
+          cors: true
+
+  createweight:
+    handler: lambda/CreateWeight.handler
+    name: '${self:provider.stage}-${self:service}-createweight'
+    description: 'Creates a weight on a rule'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CreateWeight.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/weight
+          method: put
+          cors: true
+
+  deleteweight:
+    handler: lambda/DeleteWeight.handler
+    name: '${self:provider.stage}-${self:service}-deleteweight'
+    description: 'Deletes an existing weight'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteWeight.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/weight
+          method: delete
+          cors: true
+
+  createuser:
+    handler: lambda/CreateUser.handler
+    name: '${self:provider.stage}-${self:service}-createuser'
+    description: 'Creates a user'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CreateUser.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/user
+          method: put
+          cors: true
+
+  deleteuser:
+    handler: lambda/DeleteUser.handler
+    name: '${self:provider.stage}-${self:service}-deleteuser'
+    description: 'Deletes a user'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteUser.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/user
+          method: delete
+          cors: true
+
+  updateuser:
+    handler: lambda/UpdateUser.handler
+    name: '${self:provider.stage}-${self:service}-updateuser'
+    description: 'Updates a user'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateUser.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/user
+          method: post
+          cors: true
+
+  getusers:
+    handler: lambda/GetUsers.handler
+    name: '${self:provider.stage}-${self:service}-getusers'
+    description: 'Fetches users'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetUsers.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/users
+          method: get
+          cors: true
+
+  getsystemhealth:
+    handler: lambda/GetSystemHealth.handler
+    name: '${self:provider.stage}-${self:service}-getsystemhealth'
+    description: 'Fetches system health'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetSystemHealth.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+        - 'connect/contactflows/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      SERVICE: '${self:service}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - http:
+          path: rulesengine/systemhealth
+          method: get
+          cors: true
+
+  repaircontactflows:
+    handler: lambda/RepairContactFlows.handler
+    name: '${self:provider.stage}-${self:service}-repaircontactflows'
+    description: 'Repairs contact flows'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/RepairContactFlows.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+        - 'connect/contactflows/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      SERVICE: '${self:service}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - http:
+          path: rulesengine/repaircontactflows
+          method: post
+          cors: true
+
+  repairlambdafunctions:
+    handler: lambda/RepairLambdaFunctions.handler
+    name: '${self:provider.stage}-${self:service}-repairlambdafunctions'
+    description: 'Repairs lambda functions, associating them with the instance'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/RepairLambdaFunctions.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+        - 'connect/contactflows/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      SERVICE: '${self:service}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - http:
+          path: rulesengine/repairlambdafunctions
+          method: post
+          cors: true
+
+  getsampletest:
+    handler: lambda/GetSampleTest.handler
+    name: '${self:provider.stage}-${self:service}-getsampletest'
+    description: 'Creates a sample test message'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetSampleTest.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/sampletest
+          method: get
+          cors: true
+
+  updaterule:
+    handler: lambda/UpdateRule.handler
+    name: '${self:provider.stage}-${self:service}-updaterule'
+    description: 'Updates an existing rule'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateRule.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rule
+          method: post
+          cors: true
+
+  updateruleset:
+    handler: lambda/UpdateRuleSet.handler
+    name: '${self:provider.stage}-${self:service}-updateruleset'
+    description: 'Updates an existing rule set'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateRuleSet.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/ruleset
+          method: post
+          cors: true
+
+  deleterule:
+    handler: lambda/DeleteRule.handler
+    name: '${self:provider.stage}-${self:service}-deleterule'
+    description: 'Deletes an existing rule'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteRule.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/rule
+          method: delete
+          cors: true
+
+  gettests:
+    handler: lambda/GetTests.handler
+    name: '${self:provider.stage}-${self:service}-gettests'
+    description: 'Fetches a list of tests'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetTests.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      TESTS_TABLE: !Ref TestsTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/tests
+          method: get
+          cors: true
+
+  gettest:
+    handler: lambda/GetTest.handler
+    name: '${self:provider.stage}-${self:service}-gettest'
+    description: 'Fetches a test'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetTest.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      TESTS_TABLE: !Ref TestsTable
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/test
+          method: get
+          cors: true
+
+  createtest:
+    handler: lambda/CreateTest.handler
+    name: '${self:provider.stage}-${self:service}-createtest'
+    description: 'Creates a new test'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/CreateTest.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      TESTS_TABLE: !Ref TestsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/test
+          method: put
+          cors: true
+
+  updatetest:
+    handler: lambda/UpdateTest.handler
+    name: '${self:provider.stage}-${self:service}-updatetest'
+    description: 'Updates an existing test'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateTest.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      TESTS_TABLE: !Ref TestsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/test
+          method: post
+          cors: true
+
+  deletetest:
+    handler: lambda/DeleteTest.handler
+    name: '${self:provider.stage}-${self:service}-deletetest'
+    description: 'Deletes an existing test'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteTest.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      TESTS_TABLE: !Ref TestsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/test
+          method: delete
+          cors: true
+
+  inference:
+    handler: lambda/Inference.handler
+    name: '${self:provider.stage}-${self:service}-inference'
+    description: 'Inferences rules engine'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/Inference.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - http:
+          path: rulesengine/inference
+          method: post
+          cors: true
+
+  connectsetattribute:
+    handler: lambda/ConnectSetAttribute.handler
+    name: '${self:provider.stage}-${self:service}-connectsetattribute'
+    description: 'Sets a contact attribute in Connect'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectSetAttribute.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      INSTANCE_ID: '${self:custom.instanceId}'
+
+  connectrulesinference:
+    handler: lambda/ConnectRulesInference.handler
+    name: '${self:provider.stage}-${self:service}-connectrulesinference'
+    description: 'Inferences rules engine from Amazon Connect'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectRulesInference.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 256
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      SERVICE: '${self:service}'
+      RULE_SETS_TABLE: !Ref RuleSetsTable
+      RULES_TABLE: !Ref RulesTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+      STATE_TABLE: !Ref StateTable
+      CUSTOMERS_TABLE: '${self:provider.stage}-ftacel-customers-ddb'
+      INSTANCE_ID: '${self:custom.instanceId}'
+
+  connectdtmfinput:
+    handler: lambda/ConnectDTMFInput.handler
+    name: '${self:provider.stage}-${self:service}-connectdtmfinput'
+    description: 'Handles processing DTMF input'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectDTMFInput.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+
+  connectdtmfmenu:
+    handler: lambda/ConnectDTMFMenu.handler
+    name: '${self:provider.stage}-${self:service}-connectdtmfmenu'
+    description: 'Handles processing DTMF menu options'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectDTMFMenu.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+
+  connectsendsms:
+    handler: lambda/ConnectSendSMS.handler
+    name: '${self:provider.stage}-${self:service}-connectsendsms'
+    description: 'Handles sending SMS messages'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectSendSMS.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+
+  connectdtmfselector:
+    handler: lambda/ConnectDTMFSelector.handler
+    name: '${self:provider.stage}-${self:service}-connectdtmfselector'
+    description: 'Handles processing DTMF selector options'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectDTMFSelector.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+
+  connectcreatecallhistory:
+    handler: lambda/ConnectCreateCallHistory.handler
+    name: '${self:provider.stage}-${self:service}-connectcreatecallhistory'
+    description: 'Creates a call history record in DynamoDB'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectCreateCallHistory.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      INSTANCE_ID: '${self:custom.instanceId}'
+      CALL_HISTORY_TABLE: '${self:provider.stage}-ftacel-callhistory-ddb'
+
+  connectloadstate:
+    handler: lambda/ConnectLoadState.handler
+    name: '${self:provider.stage}-${self:service}-connectloadstate'
+    description: 'Loads state for a contact from DynamoDB and returns it'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectLoadState.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      INSTANCE_ID: '${self:custom.instanceId}'
+      STATE_TABLE: !Ref StateTable
+
+  # Checks that an integration request has not timed out
+  connectchecktimeout:
+    handler: lambda/ConnectCheckTimeout.handler
+    name: '${self:provider.stage}-${self:service}-connectchecktimeout'
+    description: 'Checks an integration timeout'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectCheckTimeout.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      INSTANCE_ID: '${self:custom.instanceId}'
+      STATE_TABLE: !Ref StateTable
+
+  connectupdatestate:
+    handler: lambda/ConnectUpdateState.handler
+    name: '${self:provider.stage}-${self:service}-connectupdatestate'
+    description: 'Updates state for a contact in DynamoDB and returns the current state'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectUpdateState.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      INSTANCE_ID: '${self:custom.instanceId}'
+      STATE_TABLE: !Ref StateTable
+
+  connectputmetric:
+    handler: lambda/ConnectPutMetric.handler
+    name: '${self:provider.stage}-${self:service}-connectputmetric'
+    description: 'Puts a CloudWatch custom metric'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectPutMetric.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      CLOUDWATCH_NAMESPACE: 'ftacel-connect'
+
+  # Starts an integration request by invoking a Lambda function asychronously by ARN
+  connectintegrationstart:
+    handler: lambda/ConnectIntegrationStart.handler
+    name: '${self:provider.stage}-${self:service}-connectintegrationstart'
+    description: 'Starts an integration request by invoking an async Lambda'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectIntegrationStart.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+
+  # Foxtel specific integration Lambda function to load account balance
+  integrationretrieveaccountbalance:
+    handler: lambda/IntegrationRetrieveAccountBalance.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrieveaccountbalance'
+    description: 'Integration Lambda function that retrieves the account balance'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrieveAccountBalance.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+
+  # Foxtel specific integration Lambda function to perform inventory actions
+  integrationexecuteinventoryaction:
+    handler: lambda/IntegrationExecuteInventoryAction.handler
+    name: '${self:provider.stage}-${self:service}-integrationexecuteinventoryaction'
+    description: 'Integration Lambda function that performs inventory actions'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationExecuteInventoryAction.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+
+  # Foxtel specific integration Lambda function to place a main event order
+  integrationcreateppvorder:
+    handler: lambda/IntegrationCreatePPVOrder.handler
+    name: '${self:provider.stage}-${self:service}-integrationcreateppvorder'
+    description: 'Integration Lambda function that places an order for a main event'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationCreatePPVOrder.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+
+  # Foxtel specific integration Lambda function to setup payment profile
+  integrationsetuppaymentprofile:
+    handler: lambda/IntegrationSetupPaymentProfile.handler
+    name: '${self:provider.stage}-${self:service}-integrationsetuppaymentprofile'
+    description: 'Integration Lambda function that sets up a payment profile'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationSetupPaymentProfile.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+
+  # Foxtel specific integration Lambda function to retrieve the list of PPV services / devices
+  integrationretrieveppvservicelist:
+    handler: lambda/IntegrationRetrievePPVServiceList.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrieveppvservicelist'
+    description: 'Integration Lambda function that fetches the devices that can watch PPV'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrievePPVServiceList.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+
+  # Foxtel specific integration Lambda function to retrieve payment profile
+  integrationretrievepaymentprofile:
+    handler: lambda/IntegrationRetrievePaymentProfile.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrievepaymentprofile'
+    description: 'Integration Lambda function that retrieves the payment profile for a customer'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrievePaymentProfile.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+
+  # Foxtel specific integration Lambda function to retrieve main events from DynamoDB
+  integrationretrievemainevents:
+    handler: lambda/IntegrationRetrieveMainEvents.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrievemainevents'
+    description: 'Integration Lambda function that retrieves main events from DynamoDB'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrieveMainEvents.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+
+  # Foxtel specific integration Lambda function to validate BSB numbers
+  integrationvalidatebsb:
+    handler: lambda/IntegrationValidateBSB.handler
+    name: '${self:provider.stage}-${self:service}-integrationvalidatebsb'
+    description: 'Integration Lambda function that validates BSB numbers'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationValidateBSB.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+      BSB_VALIDATE_URL: '${self:custom.bsbValidateUrl}'
+
+  # Foxtel specific logic for loading main events for editing
+  getmainevents:
+    handler: lambda/GetMainEvents.handler
+    name: '${self:provider.stage}-${self:service}-getmainevents'
+    description: 'Fetches all main events'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetMainEvents.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/mainevents
+          method: get
+          cors: true
+
+  # Foxtel specific logic for saving a main event
+  savemainevent:
+    handler: lambda/SaveMainEvent.handler
+    name: '${self:provider.stage}-${self:service}-savemainevent'
+    description: 'Saves a main event'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/SaveMainEvent.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/mainevent
+          method: post
+          cors: true
+
+  # Foxtel specific logic for deleting a main event
+  deletemainevent:
+    handler: lambda/DeleteMainEvent.handler
+    name: '${self:provider.stage}-${self:service}-deletemainevent'
+    description: 'Deletes a main event'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/DeleteMainEvent.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/mainevent
+          method: delete
+          cors: true
+
+  outboundcall:
+    handler: lambda/OutboundCall.handler
+    name: '${self:provider.stage}-${self:service}-outboundcall'
+    description: 'Makes an outbound call, injecting test data'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/OutboundCall.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      INSTANCE_ID: '${self:custom.instanceId}'
+      OUTBOUND_NUMBER: '${self:custom.outboundNumber}'
+      USERS_TABLE: !Ref UsersTable
+      STATE_TABLE: !Ref StateTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/outbound
+          method: post
+          cors: true
+
+  verifylogin:
+    handler: lambda/VerifyLogin.handler
+    name: '${self:provider.stage}-${self:service}-verifylogin'
+    description: 'Verifies a login'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/VerifyLogin.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      USERS_TABLE: !Ref UsersTable
+    events:
+      - http:
+          path: rulesengine/login
+          method: post
+          cors: true
+
+  updateoperatinghours:
+    handler: lambda/UpdateOperatingHours.handler
+    name: '${self:provider.stage}-${self:service}-updateoperatinghours'
+    description: 'Reads operating hours from Connect on schedule and flushes them to the config table'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateOperatingHours.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      CONFIG_TABLE: !Ref ConfigTable
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - schedule: rate(30 minutes)
+
+  # Foxtel specific code that calls out to get updated main events and cache them in DDB
+  updatemainevents:
+    handler: lambda/UpdateMainEvents.handler
+    name: '${self:provider.stage}-${self:service}-updatemainevents'
+    description: 'Calls out hourly to Foxtel web service to load main events'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateMainEvents.js'
+        - 'lambda/utils/**'
+        - 'lambda/mock/**'
+        - 'node_modules/**'
+    memorySize: 256
+    timeout: 600
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      CONFIG_TABLE: !Ref ConfigTable
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+      MOCK_MODE: 'true'
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - schedule: rate(1 hour)
+
+  getconnectdata:
+    handler: lambda/GetConnectData.handler
+    name: '${self:provider.stage}-${self:service}-getconnectdata'
+    description: 'Loads data about the Connect instance'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/GetConnectData.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      SERVICE: '${self:service}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      INSTANCE_ID: '${self:custom.instanceId}'
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/connect
+          method: get
+          cors: true
+
+resources:
+  Description: 'Amazon Connect - FIRE Engine'
+  Resources:
+    LambdaRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: '${self:provider.stage}-${self:service}-${self:provider.region}-lambdarole'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Principal:
+                Service:
+                  - 'lambda.amazonaws.com'
+              Action:
+                - 'sts:AssumeRole'
+        ManagedPolicyArns:
+          - !Ref LambdaPolicy
+
+    LambdaPolicy:
+      Type: 'AWS::IAM::ManagedPolicy'
+      Properties:
+        ManagedPolicyName: '${self:provider.stage}-${self:service}-${self:provider.region}-lambdapolicy'
+        Description: 'Managed policy for lambda execution'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+                - dynamodb:PartiQLSelect
+                - dynamodb:PartiQLUpdate
+                - dynamodb:PartiQLDelete
+              Resource:
+                - !GetAtt RulesTable.Arn
+                - !GetAtt RuleSetsTable.Arn
+                - !GetAtt TestsTable.Arn
+                - !GetAtt UsersTable.Arn
+                - !GetAtt StateTable.Arn
+                - !GetAtt ConfigTable.Arn
+                - !GetAtt MainEventsTable.Arn
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-${self:service}-users-ddb/*'
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-ftacel-callhistory-ddb'
+            - Effect: Allow
+              Action:
+                - dynamodb:PartiQLSelect
+              Resource:
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-ftacel-customers-ddb'
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-ftacel-customers-ddb/*'
+            - Effect: Allow
+              Action:
+                - connect:ListQueues
+                - connect:ListContactFlows
+                - connect:ListPhoneNumbers
+                - connect:ListPrompts
+                - connect:CreateContactFlow
+                - connect:DescribeContactFlow
+                - connect:UpdateContactFlowContent
+                - connect:StartOutboundVoiceContact
+                - connect:ListLambdaFunctions
+                - connect:AssociateLambdaFunction
+                - connect:ListHoursOfOperations
+                - connect:DescribeHoursOfOperation
+                - connect:UpdateContactAttributes
+              Resource:
+                - '*'
+            - Effect: Allow
+              Action:
+                - lambda:GetFunction
+                - lambda:AddPermission
+                - lambda:ListFunctions
+                - lambda:InvokeFunction
+              Resource:
+                - '*'
+            - Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource:
+                - '*'
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              NotResource:
+                - 'arn:aws:sns:*:*:*'
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - 'arn:aws:logs:${self:provider.region}:${self:custom.accountNumber}:log-group:/aws/lambda/*:*:*'
+            - Effect: Allow
+              Action:
+                - 'kms:Encrypt'
+                - 'kms:Decrypt'
+                - 'kms:ReEncrypt*'
+                - 'kms:GenerateDataKey*'
+                - 'kms:DescribeKey'
+              Resource:
+                - !ImportValue '${self:provider.stage}-ftacel-ingest-dynamo-kms-arn'
+
+    RuleSetsTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: '${self:provider.stage}-${self:service}-rule-sets-ddb'
+        AttributeDefinitions:
+          - AttributeName: RuleSetId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: RuleSetId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    RulesTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: '${self:provider.stage}-${self:service}-rules-ddb'
+        AttributeDefinitions:
+          - AttributeName: RuleSetId
+            AttributeType: S
+          - AttributeName: RuleId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: RuleSetId
+            KeyType: HASH
+          - AttributeName: RuleId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+    UsersTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: '${self:provider.stage}-${self:service}-users-ddb'
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+          - AttributeName: APIKey
+            AttributeType: S
+          - AttributeName: EmailAddress
+            AttributeType: S
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: APIKeyIndex
+            KeySchema:
+              - AttributeName: APIKey
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: EmailAddressIndex
+            KeySchema:
+              - AttributeName: EmailAddress
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    StateTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: !Sub '${self:provider.stage}-${self:service}-state-ddb'
+        AttributeDefinitions:
+          - AttributeName: ContactId
+            AttributeType: S
+          - AttributeName: What
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ContactId
+            KeyType: HASH
+          - AttributeName: What
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: Expiry
+          Enabled: true
+        SSESpecification:
+          KMSMasterKeyId: !ImportValue '${self:provider.stage}-ftacel-ingest-dynamo-kms-id'
+          SSEEnabled: true
+          SSEType: KMS
+        BillingMode: PAY_PER_REQUEST
+
+    ConfigTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: !Sub '${self:provider.stage}-${self:service}-config-ddb'
+        AttributeDefinitions:
+          - AttributeName: ConfigKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ConfigKey
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    TestsTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: '${self:provider.stage}-${self:service}-tests-ddb'
+        AttributeDefinitions:
+          - AttributeName: TestId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: TestId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    # Foxtel specific main events table that caches upcoming events for editing
+    MainEventsTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: '${self:provider.stage}-${self:service}-mainevents-ddb'
+        AttributeDefinitions:
+          - AttributeName: EventId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: EventId
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: Expiry
+          Enabled: true
+        BillingMode: PAY_PER_REQUEST
+
+    S3BucketSite:
+      Type: 'AWS::S3::Bucket'
+      Properties:
+        BucketName: '${self:provider.stage}-${self:service}-site-${self:provider.region}-${self:custom.accountNumber}'
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
+
+    S3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: S3BucketSite
+        PolicyDocument:
+          Statement:
+          - Sid: CloudfrontCORS
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                - ''
+                - - 'arn:aws:iam::'
+                  - 'cloudfront:'
+                  - 'user/CloudFront Origin Access Identity '
+                  - Ref: CloudfrontOriginAccessIdentity
+            Action:
+            - s3:GetObject
+            Resource:
+              Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: S3BucketSite
+                - "/*"
+
+    CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+          - DomainName: '${self:provider.stage}-${self:service}-site-${self:provider.region}-${self:custom.accountNumber}.s3.ap-southeast-2.amazonaws.com'
+            Id: S3BucketSite
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                - ''
+                - - origin-access-identity/cloudfront/
+                  - Ref: CloudfrontOriginAccessIdentity
+          Enabled: 'true'
+          Comment: 'Origin Config for hosting from: ${self:provider.stage}-${self:service}-site-${self:provider.region}-${self:custom.accountNumber}'
+          DefaultRootObject: index.html
+          DefaultCacheBehavior:
+            AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad'
+            TargetOriginId: S3BucketSite
+            ViewerProtocolPolicy: redirect-to-https
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: 'true'
+
+    CloudfrontOriginAccessIdentity:
+      Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: 'Identity for CORS config in: ${self:provider.stage}-${self:service}-site-${self:provider.region}-${self:custom.accountNumber}'
+
+  Outputs:
+    CloudFrontDistribution:
+      Description: Direct link to the CloudFront distribution serving FIRE
+      Export:
+        Name: '${self:provider.stage}-ftacel-fire-cloudfront-link'
+      Value: !Join [ '', [ 'https://console.aws.amazon.com/cloudfront/home?region=${self:provider.region}#distribution-settings:', !Ref CloudFrontDistribution ]]
+
+    WebsiteURL:
+      Description: Link to access the FIRE website
+      Export:
+        Name: '${self:provider.stage}-ftacel-fire-website-link'
+      Value: !Join ['', ['https://', !GetAtt CloudFrontDistribution.DomainName ]]
+
+    SiteConfigTemplate:
+      Description: Template data for web/content/site_config.json
+      Export:
+        Name: '${self:provider.stage}-ftacel-fire-siteconfig-template'
+      Value:
+        Fn::Join:
+        - ''
+        - - '{ "version": "${self:custom.deployVersion}", "callCentreTimeZone": "${self:custom.callCentreTimeZone}", "environmentName": "${self:custom.environmentName}", "api": "'
+          - Fn::Join:
+            - ''
+            - - https://
+              - Ref: ApiGatewayRestApi
+              - ".execute-api."
+              - Ref: AWS::Region
+              - "."
+              - Ref: AWS::URLSuffix
+              - /dev/rulesengine" }

@@ -1,0 +1,39 @@
+<ul class="navbar-nav mr-auto">
+  <li class="nav-item active" id="navHome">
+    <a class="nav-link" href="#">Home</a>
+  </li>
+  {{#if loggedIn}}
+    <li class="nav-item" id="navConfigure">
+      <a class="nav-link" href="#configure">Rules</a>
+    </li>
+    <li class="nav-item" id="navVerify">
+      <a class="nav-link" href="#verify">Verify</a>
+    </li>
+    <li class="nav-item" id="navHolidays">
+      <a class="nav-link" href="#holidays">Holidays</a>
+    </li>
+    <li class="nav-item" id="navEvents">
+      <a class="nav-link" href="#events">Events</a>
+    </li>
+    {{#if admin}}
+    <li class="nav-item" id="navAdmin">
+      <a class="nav-link" href="#admin">Admin</a>
+    </li>
+    {{/if}}
+  <li class="nav-item" id="navLogout">
+    <a class="nav-link" href="#logout">Log out</a>
+  </li>
+</ul>
+<ul class="navbar-nav">
+  <div class="text-warning px-5">{{siteConfig.environmentName}}</div>
+  <div class="text-success pr-3">{{user.emailAddress}}</div>
+</ul>
+{{else}}
+  <li class="nav-item" id="navLogin">
+    <a class="nav-link" href="#login">Log in</a>
+  </li>
+</ul>
+<ul class="navbar-nav">
+  <div class="text-warning pr-3">{{siteConfig.environmentName}}</div>
+</ul>
+{{/if}}
