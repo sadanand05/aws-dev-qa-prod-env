@@ -24,7 +24,8 @@ custom:
 
   # Foxtel specific end point urls
   bsbValidateUrl: ${env:bsbValidateUrl, 'https://CHANGEME/'}
-
+  
+  VPCID: ${env:VPCID, 'vpc-08b0bf7c10da2ff75'}
   # CIDR
   VPCCIDR: ${env:VPCCIDR, '10.77.12.0/22'}
 
@@ -2130,7 +2131,7 @@ resources:
     VPCLambdaSecurityGroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
-        VpcId: AWS::EC2::VPC::Id
+        VpcId: '${self:custom.VPCID}'
         GroupName: VPCLambdaSecurityGroup
         GroupDescription: VPC Lambda Security Group
         SecurityGroupIngress:
