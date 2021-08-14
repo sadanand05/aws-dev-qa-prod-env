@@ -1,0 +1,524 @@
+service: test-ftacel-fire
+
+provider:
+  name: aws
+  region: ${opt:region, 'ap-southeast-2'}
+  runtime: nodejs12.x
+  endpointType: REGIONAL
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 60
+  deploymentBucket:
+    name: ${env:deploymentBucket}
+  deploymentPrefix: 'applications/ftacel/fire'
+  apiGateway:
+    shouldStartNameWithService: true
+  lambdaHashingVersion: 20201221
+
+custom:
+  accountNumber: ${env:accountNumber, 'CHANGEME'}
+  instanceId: ${env:instanceId, 'CHANGEME'}
+  outboundNumber: ${env:outboundNumber, 'CHANGEME'}
+  environmentName: ${env:environmentName, 'Unknown'}
+  deployVersion: ${env:deployVersion, '1.0.36 (Sprint 8 Showcase)'}
+  callCentreTimeZone: ${env:callCentreTimeZone, 'Australia/Melbourne'}
+
+  # Foxtel specific end point urls
+  bsbValidateUrl: ${env:bsbValidateUrl, 'https://CHANGEME/'}
+
+  # CIDR
+  VPCCIDR: ${env:VPCCIDR, '10.77.12.0/22'}
+
+  # VPC Subnet ids
+  trustedSubnetIdA: ${env:trustedSubnetIdA, 'subnet-06613a774a2a40ed6'}
+  trustedSubnetIdB: ${env:trustedSubnetIdB, 'subnet-0f73efdbe8e8d52ad'}
+  trustedSubnetIdC: ${env:trustedSubnetIdC, 'subnet-07b873a4398e0d145'}
+
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+functions:
+
+  # Starts an integration request by invoking a Lambda function asychronously by ARN
+  connectintegrationstart:
+    handler: lambda/ConnectIntegrationStart.handler
+    name: '${self:provider.stage}-${self:service}-connectintegrationstart'
+    description: 'Starts an integration request by invoking an async Lambda'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/ConnectIntegrationStart.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 7
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to load account balance
+  integrationretrieveaccountbalance:
+    handler: lambda/IntegrationRetrieveAccountBalance.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrieveaccountbalance'
+    description: 'Integration Lambda function that retrieves the account balance'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrieveAccountBalance.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to perform inventory actions
+  integrationexecuteinventoryaction:
+    handler: lambda/IntegrationExecuteInventoryAction.handler
+    name: '${self:provider.stage}-${self:service}-integrationexecuteinventoryaction'
+    description: 'Integration Lambda function that performs inventory actions'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationExecuteInventoryAction.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to place a main event order
+  integrationcreateppvorder:
+    handler: lambda/IntegrationCreatePPVOrder.handler
+    name: '${self:provider.stage}-${self:service}-integrationcreateppvorder'
+    description: 'Integration Lambda function that places an order for a main event'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationCreatePPVOrder.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to setup payment profile
+  integrationsetuppaymentprofile:
+    handler: lambda/IntegrationSetupPaymentProfile.handler
+    name: '${self:provider.stage}-${self:service}-integrationsetuppaymentprofile'
+    description: 'Integration Lambda function that sets up a payment profile'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationSetupPaymentProfile.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to retrieve the list of PPV services / devices
+  integrationretrieveppvservicelist:
+    handler: lambda/IntegrationRetrievePPVServiceList.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrieveppvservicelist'
+    description: 'Integration Lambda function that fetches the devices that can watch PPV'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrievePPVServiceList.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to retrieve payment profile
+  integrationretrievepaymentprofile:
+    handler: lambda/IntegrationRetrievePaymentProfile.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrievepaymentprofile'
+    description: 'Integration Lambda function that retrieves the payment profile for a customer'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrievePaymentProfile.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to retrieve main events from DynamoDB
+  integrationretrievemainevents:
+    handler: lambda/IntegrationRetrieveMainEvents.handler
+    name: '${self:provider.stage}-${self:service}-integrationretrievemainevents'
+    description: 'Integration Lambda function that retrieves main events from DynamoDB'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationRetrieveMainEvents.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific integration Lambda function to validate BSB numbers
+  integrationvalidatebsb:
+    handler: lambda/IntegrationValidateBSB.handler
+    name: '${self:provider.stage}-${self:service}-integrationvalidatebsb'
+    description: 'Integration Lambda function that validates BSB numbers'
+    role: !GetAtt LambdaRole.Arn
+    maximumRetryAttempts: 0
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/IntegrationValidateBSB.js'
+        - 'lambda/mock/**'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 2048
+    timeout: 300
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      STATE_TABLE: !Ref StateTable
+      MOCK_MODE: 'true'
+      BSB_VALIDATE_URL: '${self:custom.bsbValidateUrl}'
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific logic for saving a main event
+  savemainevent:
+    handler: lambda/SaveMainEvent.handler
+    name: '${self:provider.stage}-${self:service}-savemainevent'
+    description: 'Saves a main event'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/SaveMainEvent.js'
+        - 'lambda/utils/**'
+        - 'node_modules/**'
+    memorySize: 128
+    timeout: 29
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      VALID_ORIGINS: !Join ['', [ '["https://', !GetAtt CloudFrontDistribution.DomainName, '"]', ]]
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+      USERS_TABLE: !Ref UsersTable
+      CONFIG_TABLE: !Ref ConfigTable
+    events:
+      - http:
+          path: rulesengine/mainevent
+          method: post
+          cors: true
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+  # Foxtel specific code that calls out to get updated main events and cache them in DDB
+  updatemainevents:
+    handler: lambda/UpdateMainEvents.handler
+    name: '${self:provider.stage}-${self:service}-updatemainevents'
+    description: 'Calls out hourly to Foxtel web service to load main events'
+    role: !GetAtt LambdaRole.Arn
+    package:
+      patterns:
+        - '!*/**'
+        - '!*'
+        - 'lambda/UpdateMainEvents.js'
+        - 'lambda/utils/**'
+        - 'lambda/mock/**'
+        - 'node_modules/**'
+    memorySize: 256
+    timeout: 600
+    environment:
+      REGION: '${self:provider.region}'
+      STAGE: '${self:provider.stage}'
+      CONFIG_TABLE: !Ref ConfigTable
+      MAIN_EVENTS_TABLE: !Ref MainEventsTable
+      MOCK_MODE: 'true'
+      INSTANCE_ID: '${self:custom.instanceId}'
+    events:
+      - schedule: rate(1 hour)
+    vpc:
+      securityGroupIds:
+        - !Ref VPCLambdaSecurityGroup
+      subnetIds:
+        - '${self:custom.trustedSubnetIdA}'
+        - '${self:custom.trustedSubnetIdB}'
+        - '${self:custom.trustedSubnetIdC}'
+
+resources:
+  Description: 'Amazon Connect - FIRE Engine'
+  Resources:
+    LambdaRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: '${self:provider.stage}-${self:service}-${self:provider.region}-lambdarole'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Principal:
+                Service:
+                  - 'lambda.amazonaws.com'
+              Action:
+                - 'sts:AssumeRole'
+        ManagedPolicyArns:
+          - !Ref LambdaPolicy
+
+    LambdaPolicy:
+      Type: 'AWS::IAM::ManagedPolicy'
+      Properties:
+        ManagedPolicyName: '${self:provider.stage}-${self:service}-${self:provider.region}-lambdapolicy'
+        Description: 'Managed policy for lambda execution'
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+                - dynamodb:PartiQLSelect
+                - dynamodb:PartiQLUpdate
+                - dynamodb:PartiQLDelete
+              Resource:
+                - !GetAtt RulesTable.Arn
+                - !GetAtt RuleSetsTable.Arn
+                - !GetAtt TestsTable.Arn
+                - !GetAtt UsersTable.Arn
+                - !GetAtt StateTable.Arn
+                - !GetAtt ConfigTable.Arn
+                - !GetAtt MainEventsTable.Arn
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-${self:service}-users-ddb/*'
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-ftacel-callhistory-ddb'
+            - Effect: Allow
+              Action:
+                - dynamodb:PartiQLSelect
+              Resource:
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-ftacel-customers-ddb'
+                - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.accountNumber}:table/${self:provider.stage}-ftacel-customers-ddb/*'
+            - Effect: Allow
+              Action:
+                - connect:ListQueues
+                - connect:ListContactFlows
+                - connect:ListPhoneNumbers
+                - connect:ListPrompts
+                - connect:CreateContactFlow
+                - connect:DescribeContactFlow
+                - connect:UpdateContactFlowContent
+                - connect:StartOutboundVoiceContact
+                - connect:ListLambdaFunctions
+                - connect:AssociateLambdaFunction
+                - connect:ListHoursOfOperations
+                - connect:DescribeHoursOfOperation
+                - connect:UpdateContactAttributes
+              Resource:
+                - '*'
+            - Effect: Allow
+              Action:
+                - lambda:GetFunction
+                - lambda:AddPermission
+                - lambda:ListFunctions
+                - lambda:InvokeFunction
+              Resource:
+                - '*'
+            - Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource:
+                - '*'
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              NotResource:
+                - 'arn:aws:sns:*:*:*'
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - 'arn:aws:logs:${self:provider.region}:${self:custom.accountNumber}:log-group:/aws/lambda/*:*:*'
+            - Effect: Allow
+              Action:
+                - 'kms:Encrypt'
+                - 'kms:Decrypt'
+                - 'kms:ReEncrypt*'
+                - 'kms:GenerateDataKey*'
+                - 'kms:DescribeKey'
+              Resource:
+                - !ImportValue '${self:provider.stage}-ftacel-ingest-dynamo-kms-arn'
+            - Effect: Allow
+              Action:
+                - ec2:CreateNetworkInterface
+                - ec2:DescribeNetworkInterfaces
+                - ec2:DeleteNetworkInterface
+              Resource:
+                - '*'  
+                
+    # Create a common Security group for lambda interface endpoints
+    VPCLambdaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        VpcId: AWS::EC2::VPC::Id
+        GroupName: VPCLambdaSecurityGroup
+        GroupDescription: VPC Lambda Security Group
+        SecurityGroupIngress:
+          - CidrIp: - '${self:custom.VPCCIDR}'
+            Description: VPC Endpoint Ingress 10 range
+            FromPort: 443
+            ToPort: 443
+            IpProtocol: "tcp"
+
+  Outputs:
+    SiteConfigTemplate:
+      Description: Template data for web/content/site_config.json
+      Export:
+        Name: '${self:provider.stage}-test-ftacel-fire-siteconfig-template'
+      Value:
+        Fn::Join:
+        - ''
+        - - '{ "version": "${self:custom.deployVersion}", "callCentreTimeZone": "${self:custom.callCentreTimeZone}", "environmentName": "${self:custom.environmentName}", "api": "'
+          - Fn::Join:
+            - ''
+            - - https://
+              - Ref: ApiGatewayRestApi
+              - ".execute-api."
+              - Ref: AWS::Region
+              - "."
+              - Ref: AWS::URLSuffix
+              - /dev/rulesengine" }
