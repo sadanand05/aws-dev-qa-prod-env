@@ -1254,7 +1254,7 @@ functions:
     handler: lambda/IntegrationRetrieveAccountBalance.handler
     name: '${self:provider.stage}-${self:service}-integrationretrieveaccountbalance'
     description: 'Integration Lambda function that retrieves the account balance'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1284,7 +1284,7 @@ functions:
     handler: lambda/IntegrationExecuteInventoryAction.handler
     name: '${self:provider.stage}-${self:service}-integrationexecuteinventoryaction'
     description: 'Integration Lambda function that performs inventory actions'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1314,7 +1314,7 @@ functions:
     handler: lambda/IntegrationCreatePPVOrder.handler
     name: '${self:provider.stage}-${self:service}-integrationcreateppvorder'
     description: 'Integration Lambda function that places an order for a main event'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1344,7 +1344,7 @@ functions:
     handler: lambda/IntegrationSetupPaymentProfile.handler
     name: '${self:provider.stage}-${self:service}-integrationsetuppaymentprofile'
     description: 'Integration Lambda function that sets up a payment profile'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1374,7 +1374,7 @@ functions:
     handler: lambda/IntegrationRetrievePPVServiceList.handler
     name: '${self:provider.stage}-${self:service}-integrationretrieveppvservicelist'
     description: 'Integration Lambda function that fetches the devices that can watch PPV'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1404,7 +1404,7 @@ functions:
     handler: lambda/IntegrationRetrievePaymentProfile.handler
     name: '${self:provider.stage}-${self:service}-integrationretrievepaymentprofile'
     description: 'Integration Lambda function that retrieves the payment profile for a customer'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1434,7 +1434,7 @@ functions:
     handler: lambda/IntegrationRetrieveMainEvents.handler
     name: '${self:provider.stage}-${self:service}-integrationretrievemainevents'
     description: 'Integration Lambda function that retrieves main events from DynamoDB'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1464,7 +1464,7 @@ functions:
     handler: lambda/IntegrationValidateBSB.handler
     name: '${self:provider.stage}-${self:service}-integrationvalidatebsb'
     description: 'Integration Lambda function that validates BSB numbers'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     maximumRetryAttempts: 0
     package:
       patterns:
@@ -1655,7 +1655,7 @@ functions:
     handler: lambda/UpdateMainEvents.handler
     name: '${self:provider.stage}-${self:service}-updatemainevents'
     description: 'Calls out hourly to Foxtel web service to load main events'
-    role: !GetAtt LambdaRole.Arn
+    role: !GetAtt LambdaRoleIntegration.Arn
     package:
       patterns:
         - '!*/**'
