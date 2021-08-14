@@ -498,7 +498,7 @@ resources:
         GroupName: VPCLambdaSecurityGroup
         GroupDescription: VPC Lambda Security Group
         SecurityGroupIngress:
-          - CidrIp: - '${self:custom.VPCCIDR}'
+          - CidrIp: '${self:custom.VPCCIDR}'
             Description: VPC Endpoint Ingress 10 range
             FromPort: 443
             ToPort: 443
