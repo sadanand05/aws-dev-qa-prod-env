@@ -1974,4 +1974,4 @@ resources:
               - Ref: AWS::Region
               - "."
               - Ref: AWS::URLSuffix
-              - /dev/rulesengine" }
+              - /dev/rulesengine" } 
