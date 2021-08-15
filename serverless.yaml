@@ -36,7 +36,7 @@ custom:
 
   # VPC Subnet ids
   #trustedSubnetIdA: ${env:trustedSubnetIdA, 'subnet-06613a774a2a40ed6'}
- # trustedSubnetIdB: ${env:trustedSubnetIdB, 'subnet-0f73efdbe8e8d52ad'}
+  #trustedSubnetIdB: ${env:trustedSubnetIdB, 'subnet-0f73efdbe8e8d52ad'}
   #trustedSubnetIdC: ${env:trustedSubnetIdC, 'subnet-07b873a4398e0d145'}
 
 package:
@@ -2131,6 +2131,15 @@ resources:
       Properties:
         CloudFrontOriginAccessIdentityConfig:
           Comment: 'Identity for CORS config in: ${self:provider.stage}-${self:service}-site-${self:provider.region}-${self:custom.accountNumber}'
+
+    # Create Secret Manager key for storing credentials used for intgration lambda
+    SecretManagerKey:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Description: !Sub '${self:provider.stage}-${self:service}-secretkey - key'
+        Name: !Sub '/${self:provider.stage}-${self:service}-secretkey'
+        KmsKeyId: !ImportValue '${self:provider.stage}-ftacel-ingest-dynamo-kms-arn'
+        SecretString: '{"username":"CHANGEME","password":"CHANGEME"}'
 
     # Create a common Security group for lambda interface endpoints
     VPCLambdaSecurityGroup:
