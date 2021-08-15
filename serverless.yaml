@@ -23,6 +23,10 @@ custom:
   callCentreTimeZone: ${env:callCentreTimeZone, 'Australia/Melbourne'}
   VPCID: ${env:VPCID, 'CHANGEME'}
   VPCCIDR: ${env:VPCCIDR, 'CHANGEME'}
+  trustedSubnetIdA: ${env:trustedSubnetIdA, 'CHANGEME'}
+  trustedSubnetIdB: ${env:trustedSubnetIdB, 'CHANGEME'}
+  trustedSubnetIdC: ${env:trustedSubnetIdC, 'CHANGEME'}
+
   # Foxtel specific end point urls
   bsbValidateUrl: ${env:bsbValidateUrl, 'https://CHANGEME/'}
   
@@ -31,9 +35,9 @@ custom:
   #VPCCIDR: ${env:VPCCIDR, '10.77.12.0/22'}
 
   # VPC Subnet ids
-  trustedSubnetIdA: ${env:trustedSubnetIdA, 'subnet-06613a774a2a40ed6'}
-  trustedSubnetIdB: ${env:trustedSubnetIdB, 'subnet-0f73efdbe8e8d52ad'}
-  trustedSubnetIdC: ${env:trustedSubnetIdC, 'subnet-07b873a4398e0d145'}
+  #trustedSubnetIdA: ${env:trustedSubnetIdA, 'subnet-06613a774a2a40ed6'}
+ # trustedSubnetIdB: ${env:trustedSubnetIdB, 'subnet-0f73efdbe8e8d52ad'}
+  #trustedSubnetIdC: ${env:trustedSubnetIdC, 'subnet-07b873a4398e0d145'}
 
 package:
   individually: true
