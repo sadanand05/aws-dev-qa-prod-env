@@ -1933,6 +1933,11 @@ resources:
                 - ec2:DeleteNetworkInterface
               Resource:
                 - '*'
+            - Effect: Allow
+              Action:
+                - 'secretsmanager:GetSecretValue'
+              Resource:
+                - !ImportValue '${self:provider.stage}-${self:service}-secretcredential'
 
     RuleSetsTable:
       Type: 'AWS::DynamoDB::Table'
@@ -2136,10 +2141,10 @@ resources:
     SecretManagerKey:
       Type: AWS::SecretsManager::Secret
       Properties:
-        Description: !Sub '${self:provider.stage}-${self:service}-secretkey - key'
-        Name: !Sub '/${self:provider.stage}-${self:service}-secretkey'
+        Description: !Sub '${self:provider.stage}-${self:service}-secretcredential - key'
+        Name: !Sub '/${self:provider.stage}-${self:service}-secretcredential'
         KmsKeyId: !ImportValue '${self:provider.stage}-ftacel-ingest-dynamo-kms-arn'
-        SecretString: '{"username":"CHANGEME","password":"CHANGEME"}'
+        SecretString: '{"OperatorName":"CHANGEME","UserName":"CHANGEME"}'
 
     # Create a common Security group for lambda interface endpoints
     VPCLambdaSecurityGroup:
